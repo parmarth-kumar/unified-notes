@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sorting Algorithms Interactive Visualizer — Unified-Notes DSA</title>
+  
+  <!-- Typography with offline-safe system fallbacks -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ================= THEME TOKENS ================= */
+    :root[data-theme="dark"] {
+      --bg-page: #090d16;
+      --bg-surface: #0f172a;
+      --bg-subtle: #1e293b;
+      --bg-inset: #050811;
+      
+      --border-color: #334155;
+      --border-light: #1e293b;
+      
+      --text-heading: #f8fafc;
+      --text-body: #cbd5e1;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      --primary: #38bdf8;
+      --primary-rgb: 56, 189, 248;
+      --accent: #818cf8;
+      --success: #10b981;
+      --danger: #f43f5e;
+      --warning: #f59e0b;
+      
+      --bar-default: #334155;
+      --bar-compare: #f59e0b;
+      --bar-swap: #c084fc;
+      --bar-sorted: #10b981;
+      --bar-target: #38bdf8;
+    }
+
+    :root[data-theme="light"] {
+      --bg-page: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --bg-inset: #e2e8f0;
+      
+      --border-color: #cbd5e1;
+      --border-light: #e2e8f0;
+      
+      --text-heading: #0f172a;
+      --text-body: #334155;
+      --text-muted: #475569;
+      --text-dim: #94a3b8;
+      
+      --primary: #0284c7;
+      --primary-rgb: 2, 132, 199;
+      --accent: #4f46e5;
+      --success: #059669;
+      --danger: #e11d48;
+      --warning: #d97706;
+      
+      --bar-default: #cbd5e1;
+      --bar-compare: #d97706;
+      --bar-swap: #9333ea;
+      --bar-sorted: #059669;
+      --bar-target: #0284c7;
+    }
+
+    /* ================= SCROLLBARS & BASE STYLES ================= */
+    html {
+      overflow-y: scroll;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-color) var(--bg-page);
+    }
+    
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: var(--bg-page); }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 999px;
+      border: 1px solid var(--bg-page);
+    }
+    ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-body);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.7;
+      font-size: 1.02rem;
+      transition: background-color 0.25s ease, color 0.25s ease;
+      display: flex;
+      justify-content: center;
+      padding: 0 20px 80px;
+      overflow-x: hidden;
+    }
+
+    .doc-container {
+      max-width: 980px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* ================= TOP NAVIGATION BAR ================= */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 0 18px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .nav-breadcrumbs {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-breadcrumbs a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .nav-breadcrumbs a:hover { color: var(--primary); }
+    .nav-breadcrumbs span { color: var(--primary); font-weight: 700; }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-link-btn {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-body);
+      text-decoration: none;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .nav-link-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--bg-surface);
+    }
+
+    .theme-toggle-btn {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-heading);
+      cursor: pointer;
+      padding: 7px 13px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+    .theme-toggle-btn:hover {
+      border-color: var(--primary);
+      background: var(--bg-surface);
+    }
+    .theme-toggle-btn svg { width: 15px; height: 15px; fill: currentColor; }
+
+    /* ================= DOCUMENT HEADER ================= */
+    .doc-header { margin-bottom: 32px; }
+    .doc-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--primary);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    h1.doc-title {
+      font-size: 2.35rem;
+      font-weight: 800;
+      color: var(--text-heading);
+      letter-spacing: -0.03em;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    p.doc-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-heading);
+      letter-spacing: -0.02em;
+      margin: 48px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-icon {
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--primary);
+    }
+    .section-icon svg {
+      width: 100%;
+      height: 100%;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* ================= UNIFIED-NOTES SORTING WORKBENCH ================= */
+    .workbench {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      margin: 24px 0 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .workbench-nav-tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 14px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .wb-tab-btn {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .wb-tab-btn:hover { color: var(--text-heading); border-color: var(--primary); }
+    .wb-tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .workbench-controls-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .preset-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .preset-select {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-heading);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .algo-badge-tag {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-family: 'Fira Code', monospace;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    /* Custom Input Bar */
+    .custom-input-box {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 16px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 12px;
+      flex-wrap: wrap;
+    }
+    .custom-input-box label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .custom-input-box input {
+      background: var(--bg-inset);
+      border: 1px solid var(--border-color);
+      color: var(--text-heading);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.82rem;
+      flex: 1;
+      min-width: 180px;
+    }
+    .custom-input-box button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .custom-input-box button:hover { opacity: 0.9; }
+
+    /* Visual Legend Bar */
+    .legend-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--bg-inset);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 14px;
+      margin-bottom: 16px;
+      font-size: 0.78rem;
+      font-family: 'Fira Code', monospace;
+      color: var(--text-muted);
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .legend-dot.compare { background: var(--bar-compare); }
+    .legend-dot.swap { background: var(--bar-swap); }
+    .legend-dot.target { background: var(--bar-target); }
+    .legend-dot.sorted { background: var(--bar-sorted); }
+    .legend-dot.default { background: var(--bar-default); }
+
+    /* Bar Display Stage */
+    .visualizer-stage {
+      background: var(--bg-inset);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px 20px;
+      min-height: 240px;
+      height: 240px;
+      position: relative;
+      margin-bottom: 18px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .bar-container {
+      position: absolute;
+      bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      height: calc(100% - 40px);
+      justify-content: flex-end;
+      transition: left 0.32s cubic-bezier(0.4, 0, 0.2, 1), transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: left, transform;
+    }
+
+    .bar-element {
+      width: 100%;
+      background: var(--bar-default);
+      border-radius: 6px 6px 0 0;
+      min-height: 24px;
+      position: relative;
+      box-sizing: border-box;
+      border: 2px solid transparent;
+      transition: height 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .bar-val {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.96rem;
+      font-weight: 800;
+      color: var(--text-heading);
+      transition: color 0.2s ease;
+    }
+    .bar-idx {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-dim);
+    }
+
+    /* Bar State Highlights & Lift Animations */
+    .bar-container.lifted {
+      transform: translateY(-24px);
+      z-index: 10;
+    }
+    .bar-role-badge {
+      font-size: 0.62rem;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 4px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      min-height: 15px;
+      line-height: 14px;
+      font-family: 'Fira Code', monospace;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .bar-role-badge.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .bar-role-badge.min { background: rgba(56, 189, 248, 0.25); color: var(--primary); border: 1px solid var(--primary); }
+    .bar-role-badge.key { background: rgba(192, 132, 252, 0.3); color: #c084fc; border: 1px solid #c084fc; }
+    .bar-role-badge.target { background: rgba(245, 158, 11, 0.25); color: var(--warning); border: 1px solid var(--warning); }
+    .bar-role-badge.sorted { background: rgba(16, 185, 129, 0.25); color: var(--success); border: 1px solid var(--success); }
+
+    .partition-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: 'Fira Code', monospace;
+      flex-wrap: wrap;
+      min-height: 28px;
+    }
+    .part-tag {
+      padding: 3px 10px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid transparent;
+    }
+    .part-tag.sorted {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--success);
+      color: var(--success);
+    }
+    .part-tag.active {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .part-tag.unsorted {
+      background: var(--bg-subtle);
+      border-color: var(--border-color);
+      color: var(--text-muted);
+    }
+
+    .bar-element.comparing {
+      background: var(--bar-compare) !important;
+      border-color: #fbbf24;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.5);
+    }
+    .bar-element.swapping {
+      background: var(--bar-swap) !important;
+      border-color: #d8b4fe;
+      box-shadow: 0 0 18px rgba(192, 132, 252, 0.6);
+      transform: scale(1.04);
+    }
+    .bar-element.target-min {
+      background: var(--bar-target) !important;
+      border-color: #7dd3fc;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+    }
+    .bar-element.sorted {
+      background: var(--bar-sorted) !important;
+      border-color: #6ee7b7;
+    }
+
+    /* Telemetry HUD */
+    .telemetry-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .stat-card {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 6px;
+      text-align: center;
+    }
+    .stat-card .label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .stat-card .value {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text-heading);
+      margin-top: 2px;
+      font-family: 'Fira Code', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Event Terminal */
+    .event-terminal {
+      background: var(--bg-inset);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      height: 90px;
+      min-height: 90px;
+      max-height: 90px;
+      box-sizing: border-box;
+      padding: 10px 14px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.78rem;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-color) transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-bottom: 16px;
+    }
+    .log-msg { line-height: 1.3; }
+    .log-msg.compare { color: var(--warning); }
+    .log-msg.swap { color: #c084fc; font-weight: 700; }
+    .log-msg.success { color: var(--success); font-weight: 700; }
+    .log-msg.info { color: var(--text-dim); }
+
+    /* Controls Panel */
+    .controls-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .btn-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    button.wb-btn {
+      background: var(--bg-subtle);
+      color: var(--text-heading);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    button.wb-btn:hover { background: var(--border-color); }
+    button.wb-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    button.wb-btn.reset { background: transparent; color: var(--danger); border-color: rgba(244, 63, 94, 0.4); }
+
+    .slider-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .slider-box input[type="range"] {
+      flex: 1;
+      accent-color: var(--primary);
+    }
+
+    /* ================= ALGORITHM QUICK REFERENCE CARDS ================= */
+    .ref-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin: 24px 0 40px;
+    }
+    .ref-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .ref-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+    .ref-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ref-card-title {
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--text-heading);
+    }
+    .ref-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .ref-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      font-family: 'Fira Code', monospace;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--primary);
+    }
+    .ref-badge.stable { color: var(--success); border-color: rgba(16, 185, 129, 0.3); }
+    .ref-badge.unstable { color: var(--warning); border-color: rgba(245, 158, 11, 0.3); }
+
+    .ref-cue {
+      font-size: 0.88rem;
+      color: var(--text-body);
+      line-height: 1.55;
+    }
+    .ref-cue strong { color: var(--text-heading); }
+
+    .ref-link {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: none;
+      margin-top: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .ref-link:hover { text-decoration: underline; }
+
+    /* ================= COMPANION RESOURCES HUB ================= */
+    .nav-links-hub {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 24px;
+      margin: 32px 0;
+    }
+    .nav-links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .nav-card {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px 16px;
+      text-decoration: none;
+      color: var(--text-body);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+    .nav-card:hover {
+      border-color: var(--primary);
+      background: var(--bg-inset);
+      transform: translateY(-2px);
+    }
+    .nav-card-name {
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: var(--text-heading);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav-card-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    @media (max-width: 768px) {
+      .telemetry-row { grid-template-columns: repeat(2, 1fr); }
+      .btn-row { grid-template-columns: repeat(3, 1fr); }
+      .ref-grid { grid-template-columns: 1fr; }
+      h1.doc-title { font-size: 1.85rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="doc-container">
+    
+    <!-- ================= TOP NAVIGATION BAR ================= -->
+    <nav class="top-nav">
+      <div class="nav-breadcrumbs">
+        <a href="./README.md">Unified-Notes DSA</a> / <a href="./README.md">Sorting</a> / <span>Interactive Visualizer</span>
+      </div>
+
+      <div class="nav-actions">
+        <a href="./theory.md" class="nav-link-btn" title="Open complete theory notes">📖 Theory Notes</a>
+        <a href="./practice.md" class="nav-link-btn" title="Open practice exercises">🛠️ Practice</a>
+        <a href="./revision.md" class="nav-link-btn" title="Open quick recall cheat sheet">⚡ Revision</a>
+        <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme">
+          <svg id="theme-icon-sun" style="display:none;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <svg id="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          <span id="theme-text">Dark</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ================= DOCUMENT HEADER ================= -->
+    <header class="doc-header">
+      <div class="doc-badge">Interactive Visualizer Engine</div>
+      <h1 class="doc-title">Sorting Algorithms Visualizer</h1>
+      <p class="doc-subtitle">
+        Step-by-step interactive execution, live state telemetry, and algorithm animations for fundamental sorting algorithms: <strong>Bubble Sort</strong>, <strong>Selection Sort</strong>, <strong>Insertion Sort</strong>, and <strong>Counting Sort</strong>.
+      </p>
+    </header>
+
+    <!-- ================= SECTION 1: INTERACTIVE WORKBENCH ================= -->
+    <section>
+      <h2>
+        <span class="section-icon"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></span>
+        Interactive Sorting Workbench
+      </h2>
+
+      <div class="workbench">
+        <!-- Navigation Tabs -->
+        <div class="workbench-nav-tabs">
+          <button class="wb-tab-btn active" data-algo="bubble">Bubble Sort</button>
+          <button class="wb-tab-btn" data-algo="selection">Selection Sort</button>
+          <button class="wb-tab-btn" data-algo="insertion">Insertion Sort</button>
+          <button class="wb-tab-btn" data-algo="counting">Counting Sort</button>
+        </div>
+
+        <!-- Controls Top -->
+        <div class="workbench-controls-top">
+          <div class="preset-group">
+            <label for="wb-preset">Array Preset:</label>
+            <select class="preset-select" id="wb-preset">
+              <option value="default">Default [5, 3, 8, 4, 2]</option>
+              <option value="duplicates">Duplicates [4, 2, 2, 8, 3, 3, 1]</option>
+              <option value="dense">Dense Duplicates [2, 1, 3, 2, 1, 2, 3, 1]</option>
+              <option value="reversed">Reversed [9, 7, 5, 4, 2, 1]</option>
+              <option value="nearly">Nearly Sorted [1, 2, 4, 3, 5, 6]</option>
+              <option value="random">Random [8, 3, 6, 2, 7, 1, 5]</option>
+              <option value="negatives">Negatives [-3, 4, 0, -2, 5, -3, 2]</option>
+              <option value="single">Single Element [42]</option>
+              <option value="sorted">Already Sorted [1, 2, 3, 4, 5, 6, 7]</option>
+            </select>
+          </div>
+          <div class="algo-badge-tag" id="algo-complexity-tag">
+            Time: O(N²) / Best: O(N) | Space: O(1)
+          </div>
+        </div>
+
+        <!-- Custom Array Input -->
+        <div class="custom-input-box">
+          <label for="wb-custom-input">Custom Array:</label>
+          <input type="text" id="wb-custom-input" placeholder="e.g. 12, -4, 0, 8, 3" />
+          <button id="wb-btn-apply-custom">Load Array</button>
+          <span id="custom-input-error" style="color: var(--danger); font-size: 0.76rem; display: none;"></span>
+        </div>
+
+        <!-- Visual Legend Bar -->
+        <div class="legend-bar">
+          <span class="legend-item"><span class="legend-dot default"></span> Default Element</span>
+          <span class="legend-item"><span class="legend-dot compare"></span> Active Comparison</span>
+          <span class="legend-item"><span class="legend-dot swap"></span> Slide / Swap / Shift</span>
+          <span class="legend-item"><span class="legend-dot target"></span> Target Slot / Key / Min</span>
+          <span class="legend-item"><span class="legend-dot sorted"></span> Sorted / Placed Position</span>
+        </div>
+
+        <!-- Dynamic Subarray Partition Banner -->
+        <div class="partition-banner" id="wb-partition-banner"></div>
+
+        <!-- Bar Stage -->
+        <div class="visualizer-stage" id="wb-stage"></div>
+
+        <!-- Counting Sort Live Frequency Map Display -->
+        <div id="freq-map-container" style="display: none; background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-family: 'Fira Code', monospace; font-size: 0.85rem;">
+          <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px;">Live Frequency Count Map (Offset-Aware):</div>
+          <div id="freq-map-pills" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+        </div>
+
+        <!-- Telemetry HUD -->
+        <div class="telemetry-row">
+          <div class="stat-card">
+            <div class="label">Comparisons</div>
+            <div class="value" id="wb-comparisons" style="color: var(--warning);">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Swaps / Shifts</div>
+            <div class="value" id="wb-swaps" style="color: #c084fc;">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Outer Loop (i)</div>
+            <div class="value" id="wb-loop-i">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Step</div>
+            <div class="value" id="wb-step">0</div>
+          </div>
+        </div>
+
+        <!-- Terminal Logger -->
+        <div class="event-terminal" id="wb-terminal">
+          <div class="log-msg info">Engine ready. Select an algorithm and click Play.</div>
+        </div>
+
+        <!-- Playback Controls -->
+        <div class="controls-panel">
+          <div class="btn-row">
+            <button class="wb-btn primary" id="wb-btn-play">Play</button>
+            <button class="wb-btn" id="wb-btn-prev">Prev</button>
+            <button class="wb-btn" id="wb-btn-next">Next</button>
+            <button class="wb-btn" id="wb-btn-solve">Solve</button>
+            <button class="wb-btn reset" id="wb-btn-reset">Reset</button>
+          </div>
+          <div class="slider-box">
+            <span>Speed:</span>
+            <input type="range" id="wb-speed" min="5" max="350" value="80" step="5" />
+            <span id="wb-speed-label" style="font-family: 'Fira Code', monospace;">80ms</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SECTION 2: ALGORITHM QUICK REFERENCE ================= -->
+    <section>
+      <h2>
+        <span class="section-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></span>
+        Algorithm Visual Cues & Reference
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">
+        Quick visual reference for the algorithms visualized above. For rigorous proofs, formal loop invariants, and complete C++ implementations, consult the linked Markdown notes.
+      </p>
+
+      <div class="ref-grid">
+        <!-- Bubble Sort Card -->
+        <div class="ref-card">
+          <div class="ref-card-header">
+            <span class="ref-card-title">Bubble Sort</span>
+            <div class="ref-badges">
+              <span class="ref-badge">O(N²)</span>
+              <span class="ref-badge stable">Stable</span>
+            </div>
+          </div>
+          <p class="ref-cue">
+            <strong>Visual Cue:</strong> Adjacent pairs slide and swap if out of order. After each pass, the largest remaining element sinks to the right end (<code>✓ Sunk</code>). Adaptive early exit halts if no swaps occur.
+          </p>
+          <a href="./theory.md#1-bubble-sort" class="ref-link">📖 Study Bubble Sort in theory.md →</a>
+        </div>
+
+        <!-- Selection Sort Card -->
+        <div class="ref-card">
+          <div class="ref-card-header">
+            <span class="ref-card-title">Selection Sort</span>
+            <div class="ref-badges">
+              <span class="ref-badge">O(N²)</span>
+              <span class="ref-badge unstable">Unstable</span>
+            </div>
+          </div>
+          <p class="ref-cue">
+            <strong>Visual Cue:</strong> Scans the unsorted suffix to locate the minimum element (<code>⭐ Min</code>), then executes at most <strong>one swap</strong> into the target slot (<code>🎯 Target</code>), minimizing memory writes.
+          </p>
+          <a href="./theory.md#2-selection-sort" class="ref-link">📖 Study Selection Sort in theory.md →</a>
+        </div>
+
+        <!-- Insertion Sort Card -->
+        <div class="ref-card">
+          <div class="ref-card-header">
+            <span class="ref-card-title">Insertion Sort</span>
+            <div class="ref-badges">
+              <span class="ref-badge">O(N²) / O(N)</span>
+              <span class="ref-badge stable">Stable</span>
+            </div>
+          </div>
+          <p class="ref-cue">
+            <strong>Visual Cue:</strong> Lifts the active element (<code>🃏 Key</code>) above the array, shifts larger sorted cards to the right (<code>➡️ Shift</code>), and drops the key into its sorted slot. Highly adaptive on nearly-sorted data.
+          </p>
+          <a href="./theory.md#3-insertion-sort" class="ref-link">📖 Study Insertion Sort in theory.md →</a>
+        </div>
+
+        <!-- Counting Sort Card -->
+        <div class="ref-card">
+          <div class="ref-card-header">
+            <span class="ref-card-title">Counting Sort</span>
+            <div class="ref-badges">
+              <span class="ref-badge">O(N + K)</span>
+              <span class="ref-badge stable">Non-Comparison</span>
+            </div>
+          </div>
+          <p class="ref-cue">
+            <strong>Visual Cue:</strong> Phase 1 scans range and tallies element counts in the live frequency map using an offset (supporting negative integers). Phase 2 reconstructs the array sequentially in linear time.
+          </p>
+          <a href="./theory.md#4-counting-sort" class="ref-link">📖 Study Counting Sort in theory.md →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SECTION 3: COMPANION LEARNING RESOURCES ================= -->
+    <section class="nav-links-hub">
+      <h3 style="margin-top: 0;">📚 Master Learning Resources in Unified-Notes</h3>
+      <p style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 14px;">
+        This interactive visualizer is designed as a dynamic visual aid. Deep technical learning, interview drilling, and practice reside in the canonical Markdown notes:
+      </p>
+
+      <div class="nav-links-grid">
+        <a href="./theory.md" class="nav-card">
+          <span class="nav-card-name">📖 theory.md</span>
+          <span class="nav-card-desc">First-principles theory, mathematical invariants, divide-and-conquer, proofs, and modern C++ implementations.</span>
+        </a>
+
+        <a href="./revision.md" class="nav-card">
+          <span class="nav-card-name">⚡ revision.md</span>
+          <span class="nav-card-desc">High-density cheat sheet, master complexity matrix with stability caveats, and 15-minute recall patterns.</span>
+        </a>
+
+        <a href="./practice.md" class="nav-card">
+          <span class="nav-card-name">🛠️ practice.md</span>
+          <span class="nav-card-desc">Hands-on tracing challenges, spot-the-bug diagnostic problems, and coding tasks with progressive hints.</span>
+        </a>
+
+        <a href="./interview-prep.md" class="nav-card">
+          <span class="nav-card-name">🎯 interview-prep.md</span>
+          <span class="nav-card-desc">Google SDE interview question bank, trade-off comparisons, QuickSelect, Inversion Counting, and mock quizzes.</span>
+        </a>
+
+        <a href="./doubts.md" class="nav-card">
+          <span class="nav-card-name">❓ doubts.md</span>
+          <span class="nav-card-desc">Living doubt log resolving subtle misconceptions, comparator undefined behavior, and counterexamples.</span>
+        </a>
+
+        <a href="./verify_all_sorts.cpp" class="nav-card">
+          <span class="nav-card-name">🧪 verify_all_sorts.cpp</span>
+          <span class="nav-card-desc">Automated test harness testing 18 suites across boundary edge cases, INT_MIN/INT_MAX, and stability.</span>
+        </a>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ================= JAVASCRIPT ENGINE ================= -->
+  <script>
+    // ================= THEME TOGGLE ENGINE =================
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const themeIconSun = document.getElementById('theme-icon-sun');
+    const themeIconMoon = document.getElementById('theme-icon-moon');
+    const themeText = document.getElementById('theme-text');
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      if (theme === 'light') {
+        themeIconSun.style.display = 'block';
+        themeIconMoon.style.display = 'none';
+        themeText.innerText = 'Light';
+      } else {
+        themeIconSun.style.display = 'none';
+        themeIconMoon.style.display = 'block';
+        themeText.innerText = 'Dark';
+      }
+      localStorage.setItem('sorting-doc-theme', theme);
+    }
+
+    const savedTheme = localStorage.getItem('sorting-doc-theme') || 'dark';
+    applyTheme(savedTheme);
+
+    themeToggleBtn.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    });
+
+    // ================= SORTING WORKBENCH ENGINE =================
+    const PRESETS = {
+      default: [5, 3, 8, 4, 2],
+      duplicates: [4, 2, 2, 8, 3, 3, 1],
+      dense: [2, 1, 3, 2, 1, 2, 3, 1],
+      reversed: [9, 7, 5, 4, 2, 1],
+      nearly: [1, 2, 4, 3, 5, 6],
+      random: [8, 3, 6, 2, 7, 1, 5],
+      negatives: [-3, 4, 0, -2, 5, -3, 2],
+      single: [42],
+      sorted: [1, 2, 3, 4, 5, 6, 7]
+    };
+
+    let curAlgo = 'bubble';
+    let rawArray = [...PRESETS.default];
+    let traceSteps = [];
+    let curStep = -1;
+    let isRunning = false;
+    let runTimer = null;
+
+    const stage = document.getElementById('wb-stage');
+    const wbTerminal = document.getElementById('wb-terminal');
+    const wbComparisons = document.getElementById('wb-comparisons');
+    const wbSwaps = document.getElementById('wb-swaps');
+    const wbLoopI = document.getElementById('wb-loop-i');
+    const wbStep = document.getElementById('wb-step');
+    const algoTag = document.getElementById('algo-complexity-tag');
+    const presetSelect = document.getElementById('wb-preset');
+    const freqMapContainer = document.getElementById('freq-map-container');
+    const freqMapPills = document.getElementById('freq-map-pills');
+    const btnPlay = document.getElementById('wb-btn-play');
+    const btnNext = document.getElementById('wb-btn-next');
+    const btnPrev = document.getElementById('wb-btn-prev');
+    const btnSolve = document.getElementById('wb-btn-solve');
+    const btnReset = document.getElementById('wb-btn-reset');
+    const speedSlider = document.getElementById('wb-speed');
+    const speedLabel = document.getElementById('wb-speed-label');
+    const tabButtons = document.querySelectorAll('.wb-tab-btn');
+    const partitionBanner = document.getElementById('wb-partition-banner');
+    const customInput = document.getElementById('wb-custom-input');
+    const btnApplyCustom = document.getElementById('wb-btn-apply-custom');
+    const customInputError = document.getElementById('custom-input-error');
+
+    // ================= STEP GENERATORS (OBJECT & PARTITION TRACKING) =================
+
+    // 1. Bubble Sort Generator
+    function generateBubbleTrace(rawArr) {
+      let items = rawArr.map((val, idx) => ({ id: `el_${idx}`, val, slot: idx }));
+      const n = items.length;
+      const trace = [];
+      let comps = 0, swaps = 0;
+
+      const cloneState = () => items.map(it => ({ ...it }));
+
+      if (n <= 1) {
+        trace.push({
+          items: cloneState(),
+          highlights: 'all-sorted',
+          badges: Object.fromEntries(items.map(it => [it.id, { text: '✓ Sorted', type: 'sorted' }])),
+          partition: [{ text: '🟢 Trivial Array (Size ≤ 1)', type: 'sorted' }],
+          i: 0, comps: 0, swaps: 0,
+          msg: n === 0 ? 'Empty array: already sorted.' : 'Single element: trivially sorted.'
+        });
+        return trace;
+      }
+
+      trace.push({
+        items: cloneState(),
+        highlights: {},
+        badges: {},
+        partition: [{ text: `🔥 Active Bubble Window [0..${n-1}]`, type: 'active' }],
+        i: 0, comps, swaps,
+        msg: 'Starting Bubble Sort'
+      });
+
+      for (let i = 0; i < n - 1; i++) {
+        let isSwapped = false;
+        for (let j = 0; j < n - i - 1; j++) {
+          comps++;
+          const badges = {
+            [items[j].id]: { text: '🫧 Left', type: 'target' },
+            [items[j + 1].id]: { text: '🫧 Right', type: 'target' }
+          };
+          for (let k = n - i; k < n; k++) {
+            badges[items[k].id] = { text: '✓ Sunk', type: 'sorted' };
+          }
+
+          const partition = [
+            { text: `🔥 Bubble Window [0..${n - 1 - i}]`, type: 'active' }
+          ];
+          if (i > 0) {
+            partition.push({ text: `🟢 Sunk Heaviest [${n - i}..${n - 1}]`, type: 'sorted' });
+          }
+
+          trace.push({
+            items: cloneState(),
+            highlights: { [items[j].id]: 'comparing', [items[j + 1].id]: 'comparing' },
+            badges,
+            partition,
+            i, comps, swaps,
+            msg: `COMPARE: arr[${j}] (${items[j].val}) vs arr[${j+1}] (${items[j+1].val})`
+          });
+
+          if (items[j].val > items[j + 1].val) {
+            swaps++;
+            isSwapped = true;
+            const tmpSlot = items[j].slot;
+            items[j].slot = items[j + 1].slot;
+            items[j + 1].slot = tmpSlot;
+
+            const tmpObj = items[j];
+            items[j] = items[j + 1];
+            items[j + 1] = tmpObj;
+
+            trace.push({
+              items: cloneState(),
+              highlights: { [items[j].id]: 'swapping', [items[j + 1].id]: 'swapping' },
+              badges,
+              partition,
+              i, comps, swaps,
+              msg: `SLIDE SWAP: arr[${j}] <-> arr[${j+1}] (${items[j+1].val} <-> ${items[j].val})`
+            });
+          }
+        }
+        
+        const endBadges = {};
+        for (let k = n - 1 - i; k < n; k++) {
+          endBadges[items[k].id] = { text: '✓ Sunk', type: 'sorted' };
+        }
+        const endPartition = [
+          { text: `🟢 Sunk Suffix [${n - 1 - i}..${n - 1}]`, type: 'sorted' }
+        ];
+        if (n - 1 - i > 0) {
+          endPartition.unshift({ text: `🔥 Unsorted Window [0..${n - 2 - i}]`, type: 'active' });
+        }
+
+        trace.push({
+          items: cloneState(),
+          highlights: { [items[n - 1 - i].id]: 'sorted' },
+          badges: endBadges,
+          partition: endPartition,
+          i, comps, swaps,
+          msg: `LOCKED: Element at index ${n - 1 - i} (${items[n - 1 - i].val}) is in final sorted position`
+        });
+
+        if (!isSwapped) {
+          trace.push({
+            items: cloneState(),
+            highlights: 'all-sorted',
+            badges: Object.fromEntries(items.map(it => [it.id, { text: '✓ Sorted', type: 'sorted' }])),
+            partition: [{ text: '🟢 Fully Sorted Array', type: 'sorted' }],
+            i, comps, swaps,
+            msg: 'EARLY EXIT: No swaps performed in this pass. Array is fully sorted!'
+          });
+          return trace;
+        }
+      }
+
+      trace.push({
+        items: cloneState(),
+        highlights: 'all-sorted',
+        badges: Object.fromEntries(items.map(it => [it.id, { text: '✓ Sorted', type: 'sorted' }])),
+        partition: [{ text: '🟢 Fully Sorted Array', type: 'sorted' }],
+        i: n - 1, comps, swaps,
+        msg: 'SUCCESS: Bubble Sort complete!'
+      });
+      return trace;
+    }
+
+    // 2. Selection Sort Generator (Self-swap check ensured)
+    function generateSelectionTrace(rawArr) {
+      let items = rawArr.map((val, idx) => ({ id: `el_${idx}`, val, slot: idx }));
+      const n = items.length;
+      const trace = [];
+      let comps = 0, swaps = 0;
+
+      const cloneState = () => items.map(it => ({ ...it }));
+
+      if (n <= 1) {
+        trace.push({
+          items: cloneState(),
+          highlights: 'all-sorted',
+          badges: Object.fromEntries(items.map(it => [it.id, { text: '✓ Sorted', type: 'sorted' }])),
+          partition: [{ text: '🟢 Trivial Array (Size ≤ 1)', type: 'sorted' }],
+          i: 0, comps: 0, swaps: 0,
+          msg: n === 0 ? 'Empty array: already sorted.' : 'Single element: trivially sorted.'
+        });
+        return trace;
+      }
+
+      trace.push({
+        items: cloneState(),
+        highlights: {},
+        badges: {},
+        partition: [{ text: `🟡 Unsorted Array [0..${n-1}]`, type: 'unsorted' }],
+        i: 0, comps, swaps,
+        msg: 'Starting Selection Sort'
+      });
+
+      for (let i = 0; i < n - 1; i++) {
+        let minIdx = i;
+
+        const makePartition = () => {
+          const parts = [];
+          if (i > 0) parts.push({ text: `🟢 Sorted Prefix [0..${i-1}]`, type: 'sorted' });
+          parts.push({ text: `🎯 Target Slot [${i}]`, type: 'active' });
+          if (i + 1 < n) parts.push({ text: `🟡 Search Suffix [${i+1}..${n-1}]`, type: 'unsorted' });
+          return parts;
+        };
+
+        const makeBadges = (curMin, curScan = null) => {
+          const b = {};
+          for (let k = 0; k < i; k++) b[items[k].id] = { text: '✓ Sorted', type: 'sorted' };
+          b[items[i].id] = { text: '🎯 Target', type: 'target' };
+          b[items[curMin].id] = { text: '⭐ Min', type: 'min' };
+          if (curScan !== null && curScan !== curMin && curScan !== i) {
+            b[items[curScan].id] = { text: '🔍 Scan', type: 'target' };
+          }
+          return b;
+        };
+
+        trace.push({
+          items: cloneState(),
+          highlights: { [items[i].id]: 'target-min' },
+          badges: makeBadges(minIdx),
+          partition: makePartition(),
+          i, comps, swaps,
+          msg: `Pass ${i + 1}: Target slot is [${i}], initialize min candidate to ${items[i].val}`
+        });
+
+        for (let j = i + 1; j < n; j++) {
+          comps++;
+          trace.push({
+            items: cloneState(),
+            highlights: { [items[minIdx].id]: 'target-min', [items[j].id]: 'comparing' },
+            badges: makeBadges(minIdx, j),
+            partition: makePartition(),
+            i, comps, swaps,
+            msg: `SCAN: Compare arr[${j}] (${items[j].val}) with current min (${items[minIdx].val})`
+          });
+
+          if (items[j].val < items[minIdx].val) {
+            minIdx = j;
+            trace.push({
+              items: cloneState(),
+              highlights: { [items[minIdx].id]: 'target-min' },
+              badges: makeBadges(minIdx, j),
+              partition: makePartition(),
+              i, comps, swaps,
+              msg: `NEW MINIMUM FOUND: ${items[minIdx].val} at index ${minIdx}`
+            });
+          }
+        }
+
+        // Avoid unnecessary self-swaps: only swap if minIdx != i
+        if (minIdx !== i) {
+          swaps++;
+          const tmpSlot = items[i].slot;
+          items[i].slot = items[minIdx].slot;
+          items[minIdx].slot = tmpSlot;
+
+          const tmp = items[i];
+          items[i] = items[minIdx];
+          items[minIdx] = tmp;
+
+          trace.push({
+            items: cloneState(),
+            highlights: { [items[i].id]: 'swapping', [items[minIdx].id]: 'swapping' },
+            badges: makeBadges(i),
+            partition: makePartition(),
+            i, comps, swaps,
+            msg: `SLIDE SWAP: Minimum ${items[i].val} into slot ${i}`
+          });
+        } else {
+          trace.push({
+            items: cloneState(),
+            highlights: { [items[i].id]: 'sorted' },
+            badges: makeBadges(i),
+            partition: makePartition(),
+            i, comps, swaps,
+            msg: `NO SWAP: Element ${items[i].val} is already the minimum in slot ${i}`
+          });
+        }
+
+        const sortedBadges = {};
+        for (let k = 0; k <= i; k++) sortedBadges[items[k].id] = { text: '✓ Sorted', type: 'sorted' };
+
+        trace.push({
+          items: cloneState(),
+          highlights: { [items[i].id]: 'sorted' },
+          badges: sortedBadges,
+          partition: [
+            { text: `🟢 Sorted Prefix [0..${i}]`, type: 'sorted' },
+            ...(i + 1 < n ? [{ text: `🟡 Unsorted [${i+1}..${n-1}]`, type: 'unsorted' }] : [])
+          ],
+          i, comps, swaps,
+          msg: `LOCKED: Position ${i} sorted.`
+        });
+      }
+
+      trace.push({
+        items: cloneState(),
+        highlights: 'all-sorted',
+        badges: Object.fromEntries(items.map(it => [it.id, { text: '✓ Sorted', type: 'sorted' }])),
+        partition: [{ text: '🟢 Fully Sorted Array', type: 'sorted' }],
+        i: n - 1, comps, swaps,
+        msg: 'SUCCESS: Selection Sort complete!'
+      });
+      return trace;
+    }
+
+    // 3. Insertion Sort Generator
+    function generateInsertionTrace(rawArr) {
+      let items = rawArr.map((val, idx) => ({ id: `el_${idx}`, val, slot: idx }));
+      const n = items.length;
+      const trace = [];
+      let comps = 0, writes = 0;
+
+      const cloneState = (liftedId = null) => items.map(it => ({ ...it, lifted: it.id === liftedId }));
+
+      if (n <= 1) {
+        trace.push({
+          items: cloneState(),
+          highlights: 'all-sorted',
+          badges: Object.fromEntries(items.map(it => [it.id, { text: '✓ Sorted', type: 'sorted' }])),
+          partition: [{ text: '🟢 Trivial Array (Size ≤ 1)', type: 'sorted' }],
+          i: 0, comps: 0, swaps: 0,
+          msg: n === 0 ? 'Empty array: already sorted.' : 'Single element: trivially sorted.'
+        });
+        return trace;
+      }
+
+      trace.push({
+        items: cloneState(),
+        highlights: { [items[0].id]: 'sorted' },
+        badges: { [items[0].id]: { text: '✓ Sorted', type: 'sorted' } },
+        partition: [
+          { text: '🟢 Sorted Hand [0..0]', type: 'sorted' },
+          { text: `⚪ Unsorted Cards [1..${n-1}]`, type: 'unsorted' }
+        ],
+        i: 0, comps, swaps: writes,
+        msg: 'Index 0 is trivially sorted.'
+      });
+
+      for (let i = 1; i < n; i++) {
+        let currItem = items[i];
+        let prev = i - 1;
+
+        const makeBadges = (shiftingId = null) => {
+          const b = {};
+          for (let k = 0; k < i; k++) b[items[k].id] = { text: '🂠 Hand', type: 'sorted' };
+          b[currItem.id] = { text: '🃏 Key', type: 'key' };
+          if (shiftingId) b[shiftingId] = { text: '➡️ Shift', type: 'target' };
+          return b;
+        };
+
+        const makePartition = () => [
+          { text: `🟢 Sorted Hand [0..${i-1}]`, type: 'sorted' },
+          { text: `🃏 Active Key (${currItem.val})`, type: 'active' },
+          ...(i + 1 < n ? [{ text: `⚪ Unsorted Cards [${i+1}..${n-1}]`, type: 'unsorted' }] : [])
+        ];
+
+        trace.push({
+          items: cloneState(currItem.id),
+          highlights: { [currItem.id]: 'target-min' },
+          badges: makeBadges(),
+          partition: makePartition(),
+          i, comps, swaps: writes,
+          msg: `LIFT KEY: Pick key = ${currItem.val} at index ${i}`
+        });
+
+        while (prev >= 0 && items[prev].val > currItem.val) {
+          comps++;
+          writes++;
+          items[prev].slot = prev + 1;
+          items[prev + 1] = items[prev];
+
+          trace.push({
+            items: cloneState(currItem.id),
+            highlights: { [items[prev + 1].id]: 'swapping' },
+            badges: makeBadges(items[prev + 1].id),
+            partition: makePartition(),
+            i, comps, swaps: writes,
+            msg: `SLIDE SHIFT: Shift ${items[prev+1].val} right to slot ${prev + 1}`
+          });
+          prev--;
+        }
+
+        if (prev >= 0) comps++;
+        currItem.slot = prev + 1;
+        items[prev + 1] = currItem;
+        writes++;
+
+        const postBadges = {};
+        for (let k = 0; k <= i; k++) postBadges[items[k].id] = { text: '✓ Hand', type: 'sorted' };
+
+        trace.push({
+          items: cloneState(),
+          highlights: { [currItem.id]: 'sorted' },
+          badges: postBadges,
+          partition: [
+            { text: `🟢 Sorted Hand [0..${i}]`, type: 'sorted' },
+            ...(i + 1 < n ? [{ text: `⚪ Unsorted Cards [${i+1}..${n-1}]`, type: 'unsorted' }] : [])
+          ],
+          i, comps, swaps: writes,
+          msg: `DROP INSERT: Placed key ${currItem.val} into slot ${prev + 1}`
+        });
+      }
+
+      trace.push({
+        items: cloneState(),
+        highlights: 'all-sorted',
+        badges: Object.fromEntries(items.map(it => [it.id, { text: '✓ Sorted', type: 'sorted' }])),
+        partition: [{ text: '🟢 Fully Sorted Array', type: 'sorted' }],
+        i: n - 1, comps, swaps: writes,
+        msg: 'SUCCESS: Insertion Sort complete!'
+      });
+      return trace;
+    }
+
+    // 4. Counting Sort Generator (Offset-aware for negative integers & O(1) bucketing)
+    function generateCountingTrace(rawArr) {
+      let items = rawArr.map((val, idx) => ({ id: `el_${idx}`, val, slot: idx }));
+      const n = items.length;
+      const trace = [];
+      let comps = 0, writes = 0;
+
+      const cloneState = () => items.map(it => ({ ...it }));
+
+      if (n <= 1) {
+        trace.push({
+          items: cloneState(),
+          highlights: 'all-sorted',
+          badges: Object.fromEntries(items.map(it => [it.id, { text: '✓ Sorted', type: 'sorted' }])),
+          freqMap: [],
+          minVal: 0,
+          partition: [{ text: '🟢 Trivial Array (Size ≤ 1)', type: 'sorted' }],
+          i: 0, comps: 0, swaps: 0,
+          msg: n === 0 ? 'Empty array: already sorted.' : 'Single element: trivially sorted.'
+        });
+        return trace;
+      }
+
+      const minVal = Math.min(...rawArr);
+      const maxVal = Math.max(...rawArr);
+      const range = maxVal - minVal + 1;
+
+      if (range > 40) {
+        // Guard against visualizer lockup with large sparse ranges
+        trace.push({
+          items: cloneState(),
+          highlights: {},
+          badges: {},
+          freqMap: [],
+          minVal,
+          partition: [{ text: '⚠️ Range Too Large for Visualization', type: 'unsorted' }],
+          i: 0, comps: 0, swaps: 0,
+          msg: `Counting Sort range (${minVal} to ${maxVal}, range = ${range}) is too large for clear bar rendering. Use values within range ≤ 40.`
+        });
+        return trace;
+      }
+
+      const freq = new Array(range).fill(0);
+
+      trace.push({
+        items: cloneState(),
+        highlights: {},
+        badges: {},
+        freqMap: [...freq],
+        minVal,
+        partition: [{ text: `📊 Phase 1: Range Scan [${minVal}..${maxVal}] (Size ${range})`, type: 'active' }],
+        i: 0, comps: n, swaps: writes,
+        msg: `SCAN RANGE: Min = ${minVal}, Max = ${maxVal} -> Allocating count array of size ${range} with offset ${minVal}`
+      });
+
+      for (let i = 0; i < n; i++) {
+        const bucket = items[i].val - minVal;
+        freq[bucket]++;
+        trace.push({
+          items: cloneState(),
+          highlights: { [items[i].id]: 'comparing' },
+          badges: { [items[i].id]: { text: `Count +1`, type: 'target' } },
+          freqMap: [...freq],
+          minVal,
+          partition: [{ text: `📊 Phase 1: Frequency Tally (Item ${i+1}/${n})`, type: 'active' }],
+          i, comps: n, swaps: writes,
+          msg: `COUNT FREQ: Value ${items[i].val} (bucket [${bucket}]) incremented to ${freq[bucket]}`
+        });
+      }
+
+      // Phase 2: Reconstruction using O(1) Map bucketing (prevents repeated linear searches)
+      const itemsByVal = new Map();
+      items.forEach(it => {
+        if (!itemsByVal.has(it.val)) itemsByVal.set(it.val, []);
+        itemsByVal.get(it.val).push(it);
+      });
+
+      let sortedIdx = 0;
+      const placedSet = new Set();
+
+      for (let b = 0; b < range; b++) {
+        const actualVal = b + minVal;
+        while (freq[b] > 0) {
+          writes++;
+          const targetItem = itemsByVal.get(actualVal).shift();
+          if (targetItem) {
+            targetItem.slot = sortedIdx;
+            placedSet.add(targetItem.id);
+          }
+          const recBadges = {};
+          placedSet.forEach(id => { recBadges[id] = { text: '✓ Placed', type: 'sorted' }; });
+          if (targetItem) recBadges[targetItem.id] = { text: `📦 ${actualVal}`, type: 'key' };
+
+          trace.push({
+            items: cloneState(),
+            highlights: targetItem ? { [targetItem.id]: 'sorted' } : {},
+            badges: recBadges,
+            freqMap: [...freq],
+            minVal,
+            partition: [
+              { text: `🟢 Placed Slots [0..${sortedIdx}]`, type: 'sorted' },
+              { text: `📦 Phase 2: Array Reconstruction`, type: 'active' }
+            ],
+            i: actualVal, comps: n, swaps: writes,
+            msg: `RECONSTRUCT: Placed ${actualVal} into sorted slot [${sortedIdx}] (remaining in bucket: ${freq[b] - 1})`
+          });
+          sortedIdx++;
+          freq[b]--;
+        }
+      }
+
+      trace.push({
+        items: cloneState(),
+        highlights: 'all-sorted',
+        badges: Object.fromEntries(items.map(it => [it.id, { text: '✓ Sorted', type: 'sorted' }])),
+        freqMap: [...freq],
+        minVal,
+        partition: [{ text: '🟢 Fully Sorted Output Array', type: 'sorted' }],
+        i: maxVal, comps: n, swaps: writes,
+        msg: 'SUCCESS: Counting Sort complete!'
+      });
+      return trace;
+    }
+
+    // ================= PERSISTENT BAR DOM ENGINE =================
+
+    function initPersistentBars(rawArr) {
+      stage.innerHTML = '';
+      if (rawArr.length === 0) {
+        stage.innerHTML = '<div style="color: var(--text-muted); font-size: 0.92rem; margin: auto; padding: 70px 0; text-align: center;">Array is empty. Select a preset or load custom values.</div>';
+        return;
+      }
+
+      const minVal = Math.min(...rawArr);
+      const maxVal = Math.max(...rawArr);
+      const span = maxVal - minVal;
+
+      rawArr.forEach((val, idx) => {
+        const id = `el_${idx}`;
+        const barContainer = document.createElement('div');
+        barContainer.className = 'bar-container';
+        barContainer.id = `bar-${id}`;
+
+        const roleBadge = document.createElement('div');
+        roleBadge.className = 'bar-role-badge';
+        roleBadge.id = `badge-${id}`;
+
+        const barVal = document.createElement('div');
+        barVal.className = 'bar-val';
+        barVal.innerText = val;
+
+        const bar = document.createElement('div');
+        bar.className = 'bar-element';
+
+        // Normalized height calculation supporting negative, zero, and positive values
+        let heightPct;
+        if (span === 0) {
+          heightPct = 50; // all values identical
+        } else if (minVal >= 0) {
+          heightPct = Math.max(18, Math.round((val / (maxVal || 1)) * 95));
+        } else {
+          heightPct = Math.round(20 + ((val - minVal) / span) * 75);
+        }
+        bar.style.height = `${heightPct}%`;
+
+        const barIdx = document.createElement('div');
+        barIdx.className = 'bar-idx';
+        barIdx.innerText = `[${idx}]`;
+
+        barContainer.appendChild(roleBadge);
+        barContainer.appendChild(barVal);
+        barContainer.appendChild(bar);
+        barContainer.appendChild(barIdx);
+        stage.appendChild(barContainer);
+      });
+
+      layoutBarsToSlots(rawArr.map((val, idx) => ({ id: `el_${idx}`, val, slot: idx })), {}, {});
+    }
+
+    function layoutBarsToSlots(items, highlights, badges = {}) {
+      const stageWidth = stage.clientWidth || 600;
+      const n = items.length;
+      if (n === 0) return;
+
+      const gap = Math.max(4, Math.min(10, Math.floor(stageWidth / (n * 4))));
+      const totalGaps = (n + 1) * gap;
+      const barWidth = Math.min(60, Math.max(26, (stageWidth - totalGaps) / n));
+      const totalWidth = n * barWidth + (n - 1) * gap;
+      const startX = Math.max(gap, (stageWidth - totalWidth) / 2);
+
+      items.forEach(item => {
+        const barContainer = document.getElementById(`bar-${item.id}`);
+        if (!barContainer) return;
+
+        const leftPos = startX + item.slot * (barWidth + gap);
+        barContainer.style.left = `${leftPos}px`;
+        barContainer.style.width = `${barWidth}px`;
+
+        if (item.lifted) {
+          barContainer.classList.add('lifted');
+        } else {
+          barContainer.classList.remove('lifted');
+        }
+
+        const barElement = barContainer.querySelector('.bar-element');
+        if (barElement) {
+          barElement.className = 'bar-element';
+          if (highlights === 'all-sorted') {
+            barElement.classList.add('sorted');
+          } else if (highlights && highlights[item.id]) {
+            barElement.classList.add(highlights[item.id]);
+          }
+        }
+
+        const badgeEl = barContainer.querySelector('.bar-role-badge');
+        if (badgeEl) {
+          if (badges && badges[item.id]) {
+            badgeEl.className = `bar-role-badge visible ${badges[item.id].type || ''}`;
+            badgeEl.innerText = badges[item.id].text;
+          } else {
+            badgeEl.className = 'bar-role-badge';
+            badgeEl.innerText = '';
+          }
+        }
+
+        const barIdxEl = barContainer.querySelector('.bar-idx');
+        if (barIdxEl) barIdxEl.innerText = `[${item.slot}]`;
+      });
+    }
+
+    function renderStep(idx) {
+      if (idx < 0 || idx >= traceSteps.length) return;
+      const step = traceSteps[idx];
+
+      wbStep.innerText = idx + 1;
+      wbComparisons.innerText = step.comps;
+      wbSwaps.innerText = step.swaps;
+      wbLoopI.innerText = step.i;
+
+      layoutBarsToSlots(step.items, step.highlights, step.badges || {});
+
+      // Update Partition Banner
+      if (step.partition && partitionBanner) {
+        partitionBanner.innerHTML = '';
+        step.partition.forEach(p => {
+          const tag = document.createElement('span');
+          tag.className = `part-tag ${p.type}`;
+          tag.innerText = p.text;
+          partitionBanner.appendChild(tag);
+        });
+      }
+
+      // Frequency HUD Update (Counting Sort)
+      if (curAlgo === 'counting' && step.freqMap && step.freqMap.length > 0) {
+        freqMapContainer.style.display = 'block';
+        freqMapPills.innerHTML = '';
+        const minV = step.minVal !== undefined ? step.minVal : 0;
+        step.freqMap.forEach((count, b) => {
+          const actualVal = b + minV;
+          if (count > 0 || rawArray.includes(actualVal)) {
+            const pill = document.createElement('span');
+            pill.style.cssText = `background: ${count > 0 ? 'rgba(56, 189, 248, 0.25)' : 'var(--bg-inset)'}; border: 1px solid ${count > 0 ? 'var(--primary)' : 'var(--border-color)'}; color: ${count > 0 ? 'var(--text-heading)' : 'var(--text-dim)'}; padding: 3px 10px; border-radius: 6px; font-weight: 800; font-size: 0.8rem;`;
+            pill.innerText = `Val ${actualVal} : ${count}x`;
+            freqMapPills.appendChild(pill);
+          }
+        });
+      } else {
+        freqMapContainer.style.display = 'none';
+      }
+
+      const log = document.createElement('div');
+      log.className = 'log-msg ' + (step.msg.startsWith('SLIDE') || step.msg.startsWith('LIFT') ? 'swap' : step.msg.startsWith('SUCCESS') || step.msg.startsWith('LOCKED') ? 'success' : step.msg.startsWith('COMPARE') || step.msg.startsWith('COUNT') ? 'compare' : 'info');
+      log.innerText = `> ${step.msg}`;
+      wbTerminal.appendChild(log);
+      wbTerminal.scrollTop = wbTerminal.scrollHeight;
+    }
+
+    function computeTrace() {
+      if (curAlgo === 'bubble') {
+        algoTag.innerText = 'Time: O(N²) / Best: O(N) | Space: O(1)';
+        return generateBubbleTrace(rawArray);
+      } else if (curAlgo === 'selection') {
+        algoTag.innerText = 'Time: O(N²) | Space: O(1) (Unstable, ≤ N-1 writes)';
+        return generateSelectionTrace(rawArray);
+      } else if (curAlgo === 'insertion') {
+        algoTag.innerText = 'Time: O(N²) / Best: O(N) | Space: O(1) (Adaptive)';
+        return generateInsertionTrace(rawArray);
+      } else if (curAlgo === 'counting') {
+        algoTag.innerText = 'Time: O(N + K) | Space: O(K) (Non-Comparison)';
+        return generateCountingTrace(rawArray);
+      }
+      return [];
+    }
+
+    function startPlayback() {
+      if (isRunning) return;
+      isRunning = true;
+      btnPlay.innerText = 'Pause';
+
+      const loop = () => {
+        if (!isRunning) return;
+        if (curStep < traceSteps.length - 1) {
+          curStep++;
+          renderStep(curStep);
+          const delay = 360 - parseInt(speedSlider.value, 10);
+          runTimer = setTimeout(loop, Math.max(delay, 220));
+        } else {
+          pausePlayback();
+        }
+      };
+      loop();
+    }
+
+    function pausePlayback() {
+      isRunning = false;
+      btnPlay.innerText = 'Play';
+      clearTimeout(runTimer);
+    }
+
+    function resetWorkbench() {
+      pausePlayback();
+      curStep = -1;
+      wbTerminal.innerHTML = '<div class="log-msg info">Engine reset to initial state.</div>';
+      initPersistentBars(rawArray);
+      traceSteps = computeTrace();
+      wbStep.innerText = '0';
+      wbComparisons.innerText = '0';
+      wbSwaps.innerText = '0';
+      wbLoopI.innerText = '0';
+      if (partitionBanner) {
+        partitionBanner.innerHTML = '<span class="part-tag unsorted">Engine ready. Select an algorithm &amp; click Play.</span>';
+      }
+      if (curAlgo === 'counting') {
+        freqMapContainer.style.display = 'block';
+        freqMapPills.innerHTML = '<span style="color: var(--text-dim); font-size: 0.78rem;">Click Play or Next to start counting...</span>';
+      } else {
+        freqMapContainer.style.display = 'none';
+      }
+    }
+
+    // Tabs
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        curAlgo = btn.dataset.algo;
+        if (curAlgo === 'counting' && (presetSelect.value === 'default' || presetSelect.value === 'nearly')) {
+          presetSelect.value = 'duplicates';
+          rawArray = [...PRESETS.duplicates];
+        }
+        resetWorkbench();
+      });
+    });
+
+    // Presets
+    presetSelect.addEventListener('change', e => {
+      if (PRESETS[e.target.value]) {
+        rawArray = [...PRESETS[e.target.value]];
+        resetWorkbench();
+      }
+    });
+
+    // Custom Input
+    btnApplyCustom.addEventListener('click', () => {
+      const valStr = customInput.value.trim();
+      customInputError.style.display = 'none';
+      if (!valStr) {
+        customInputError.innerText = 'Enter comma-separated integers.';
+        customInputError.style.display = 'inline';
+        return;
+      }
+      const parsed = valStr.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
+      if (parsed.length === 0) {
+        customInputError.innerText = 'Invalid input: no valid integers found.';
+        customInputError.style.display = 'inline';
+        return;
+      }
+      if (parsed.length > 15) {
+        customInputError.innerText = 'Max 15 elements for clear display.';
+        customInputError.style.display = 'inline';
+        return;
+      }
+      rawArray = parsed;
+      resetWorkbench();
+    });
+
+    btnPlay.addEventListener('click', () => isRunning ? pausePlayback() : startPlayback());
+    btnNext.addEventListener('click', () => { pausePlayback(); if (curStep < traceSteps.length - 1) renderStep(++curStep); });
+    btnPrev.addEventListener('click', () => { pausePlayback(); if (curStep > 0) renderStep(--curStep); });
+    btnSolve.addEventListener('click', () => { pausePlayback(); renderStep(curStep = traceSteps.length - 1); });
+    btnReset.addEventListener('click', resetWorkbench);
+
+    speedSlider.addEventListener('input', e => {
+      const delay = 360 - parseInt(e.target.value, 10);
+      speedLabel.innerText = `${delay}ms`;
+    });
+
+    window.addEventListener('resize', () => {
+      if (curStep >= 0 && curStep < traceSteps.length) {
+        layoutBarsToSlots(traceSteps[curStep].items, traceSteps[curStep].highlights, traceSteps[curStep].badges || {});
+      } else {
+        layoutBarsToSlots(rawArray.map((val, idx) => ({ id: `el_${idx}`, val, slot: idx })), {}, {});
+      }
+    });
+
+    // Initialize
+    resetWorkbench();
+  </script>
+</body>
+</html>
