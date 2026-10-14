@@ -260,6 +260,7 @@
       margin-bottom: 20px;
       overflow-x: auto;
       scrollbar-width: none;
+      flex-wrap: wrap;
     }
     .wb-tab-btn {
       background: var(--bg-subtle);
@@ -401,7 +402,8 @@
       position: relative;
       margin-bottom: 18px;
       box-sizing: border-box;
-      overflow: hidden;
+      overflow-x: auto;
+      overflow-y: hidden;
     }
 
     .bar-container {
@@ -413,8 +415,8 @@
       gap: 6px;
       height: calc(100% - 40px);
       justify-content: flex-end;
-      transition: left 0.32s cubic-bezier(0.4, 0, 0.2, 1), transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-      will-change: left, transform;
+      left: 0;
+      transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .bar-element {
@@ -425,14 +427,16 @@
       position: relative;
       box-sizing: border-box;
       border: 2px solid transparent;
-      transition: height 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+      /* Heights and state colours change immediately; movement uses transforms. */
     }
     .bar-val {
       font-family: 'Fira Code', monospace;
       font-size: 0.96rem;
       font-weight: 800;
       color: var(--text-heading);
-      transition: color 0.2s ease;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .bar-idx {
       font-family: 'Fira Code', monospace;
@@ -443,7 +447,6 @@
 
     /* Bar State Highlights & Lift Animations */
     .bar-container.lifted {
-      transform: translateY(-24px);
       z-index: 10;
     }
     .bar-role-badge {
@@ -459,7 +462,7 @@
       font-family: 'Fira Code', monospace;
       opacity: 0;
       transform: translateY(4px);
-      transition: opacity 0.2s ease, transform 0.2s ease;
+      transition: opacity 120ms cubic-bezier(0.22, 1, 0.36, 1), transform 120ms cubic-bezier(0.22, 1, 0.36, 1);
     }
     .bar-role-badge.visible {
       opacity: 1;
@@ -516,7 +519,7 @@
       box-shadow: 0 0 18px rgba(192, 132, 252, 0.6);
       transform: scale(1.04);
     }
-    .bar-element.target-min {
+    .bar-element.target-min, .bar-element.target {
       background: var(--bar-target) !important;
       border-color: #7dd3fc;
       box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
@@ -735,11 +738,48 @@
       line-height: 1.4;
     }
 
+    [hidden] { display: none !important; }
+    button:disabled { opacity: 0.45; cursor: default; }
+    button:focus-visible, input:focus-visible, select:focus-visible, .bar-container:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 3px;
+    }
+    .algorithm-guide {
+      border-left: 3px solid var(--primary);
+      padding: 10px 14px;
+      margin: 0 0 16px;
+      background: var(--bg-subtle);
+      border-radius: 0 8px 8px 0;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+    .algorithm-guide p { margin: 4px 0; }
+    .algorithm-guide a { color: var(--primary); }
+    .array-readout { font-family: 'Fira Code', monospace; font-size: 0.82rem; overflow-wrap: anywhere; margin: 0 0 14px; }
+    .step-detail { min-height: 1.6em; color: var(--text-muted); font-size: 0.85rem; margin: 10px 0; }
+    .working-state { background: var(--bg-inset); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 16px; }
+    .state-title { font-size: 0.8rem; font-weight: 700; color: var(--text-heading); margin-bottom: 8px; }
+    .state-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .state-chip { font-family: 'Fira Code', monospace; font-size: 0.76rem; padding: 4px 7px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-subtle); color: var(--text-heading); }
+    .state-chip.empty { color: var(--text-dim); border-style: dashed; }
+    .state-chip.comparing { border-color: var(--warning); }
+    .state-chip.target, .state-chip.swapping { border-color: var(--primary); }
+    .heap-level { display: grid; width: 100%; }
+    .heap-level .state-chip { justify-self: center; text-align: center; white-space: pre-line; max-width: 100%; overflow-wrap: anywhere; }
+    .visualizer-stage.instant-step .bar-container, .visualizer-stage.instant-step .bar-role-badge { transition: none; }
+    .instant-moves .bar-container, .instant-moves .bar-role-badge { transition: none; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+    }
     @media (max-width: 768px) {
       .telemetry-row { grid-template-columns: repeat(2, 1fr); }
       .btn-row { grid-template-columns: repeat(3, 1fr); }
       .ref-grid { grid-template-columns: 1fr; }
       h1.doc-title { font-size: 1.85rem; }
+      .workbench { padding: 16px; }
+      .wb-tab-btn { padding: 7px 10px; font-size: 0.8rem; }
+      .preset-group { flex-wrap: wrap; }
+      .algo-badge-tag { overflow-wrap: anywhere; }
     }
   </style>
 </head>
@@ -770,7 +810,7 @@
       <div class="doc-badge">Interactive Visualizer Engine</div>
       <h1 class="doc-title">Sorting Algorithms Visualizer</h1>
       <p class="doc-subtitle">
-        Step-by-step interactive execution, live state telemetry, and algorithm animations for fundamental sorting algorithms: <strong>Bubble Sort</strong>, <strong>Selection Sort</strong>, <strong>Insertion Sort</strong>, and <strong>Counting Sort</strong>.
+        Learn all <strong>10 sorting algorithms</strong> from the notes, plus <strong>Sort Colors / DNF</strong>. Watch one step at a time, see the working state, and follow the explanation in simple English.
       </p>
     </header>
 
@@ -783,11 +823,18 @@
 
       <div class="workbench">
         <!-- Navigation Tabs -->
-        <div class="workbench-nav-tabs">
-          <button class="wb-tab-btn active" data-algo="bubble">Bubble Sort</button>
+        <div class="workbench-nav-tabs" role="group" aria-label="Sorting algorithm">
+          <button class="wb-tab-btn active" data-algo="bubble" aria-pressed="true">Bubble Sort</button>
           <button class="wb-tab-btn" data-algo="selection">Selection Sort</button>
           <button class="wb-tab-btn" data-algo="insertion">Insertion Sort</button>
           <button class="wb-tab-btn" data-algo="counting">Counting Sort</button>
+          <button class="wb-tab-btn" data-algo="merge">Merge Sort</button>
+          <button class="wb-tab-btn" data-algo="quick">Quick Sort</button>
+          <button class="wb-tab-btn" data-algo="heap">Heap Sort</button>
+          <button class="wb-tab-btn" data-algo="radix">Radix Sort</button>
+          <button class="wb-tab-btn" data-algo="bucket">Bucket Sort</button>
+          <button class="wb-tab-btn" data-algo="shell">Shell Sort</button>
+          <button class="wb-tab-btn" data-algo="dnf">Sort Colors / DNF</button>
         </div>
 
         <!-- Controls Top -->
@@ -804,19 +851,37 @@
               <option value="negatives">Negatives [-3, 4, 0, -2, 5, -3, 2]</option>
               <option value="single">Single Element [42]</option>
               <option value="sorted">Already Sorted [1, 2, 3, 4, 5, 6, 7]</option>
+              <option value="radix">Radix digits [170, 45, 75, 90, 802, 24, 2, 66]</option>
+              <option value="bucket">Bucket decimals [0.42, 0.12, 0.35, 0.18, 0.88, 0.63]</option>
+              <option value="colors">Colors [2, 0, 2, 1, 1, 0]</option>
+              <option value="equal">All equal [7, 7, 7, 7, 7]</option>
+              <option value="empty">Empty []</option>
+              <option value="custom" hidden>Custom array</option>
             </select>
           </div>
+          <div class="preset-group" id="wb-variant-group" hidden>
+            <label for="wb-variant">Variant:</label>
+            <select class="preset-select" id="wb-variant"></select>
+          </div>
+          <button class="wb-btn" id="wb-btn-example">Load example</button>
           <div class="algo-badge-tag" id="algo-complexity-tag">
             Time: O(N²) / Best: O(N) | Space: O(1)
           </div>
         </div>
 
+        <div class="algorithm-guide">
+          <p id="wb-algorithm-cue"></p>
+          <p id="wb-input-hint"></p>
+          <a id="wb-theory-link" href="./theory.md#1-bubble-sort">Read the full lesson</a>
+          <p style="font-size:0.75rem;">Bounds describe the algorithm before recording and drawing animation steps. Those steps add work and memory. Hover or focus a bar to see its original ID.</p>
+        </div>
+
         <!-- Custom Array Input -->
         <div class="custom-input-box">
           <label for="wb-custom-input">Custom Array:</label>
-          <input type="text" id="wb-custom-input" placeholder="e.g. 12, -4, 0, 8, 3" />
+          <input type="text" id="wb-custom-input" placeholder="12, -4, 0, 8, 3 or [] for empty" />
           <button id="wb-btn-apply-custom">Load Array</button>
-          <span id="custom-input-error" style="color: var(--danger); font-size: 0.76rem; display: none;"></span>
+          <span id="custom-input-error" role="alert" style="color: var(--danger); font-size: 0.76rem; display: none;"></span>
         </div>
 
         <!-- Visual Legend Bar -->
@@ -833,10 +898,13 @@
 
         <!-- Bar Stage -->
         <div class="visualizer-stage" id="wb-stage"></div>
+        <div class="array-readout" id="wb-array-readout" aria-label="Current array order"></div>
+        <div class="step-detail" id="wb-step-detail" role="status" aria-live="polite"></div>
+        <div class="working-state" id="wb-working-state" hidden></div>
 
         <!-- Counting Sort Live Frequency Map Display -->
         <div id="freq-map-container" style="display: none; background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-family: 'Fira Code', monospace; font-size: 0.85rem;">
-          <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px;">Live Frequency Count Map (Offset-Aware):</div>
+          <div id="wb-frequency-title" style="font-size: 0.72rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px;">Live Frequency Count Map (Offset-Aware):</div>
           <div id="freq-map-pills" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
         </div>
 
@@ -847,11 +915,11 @@
             <div class="value" id="wb-comparisons" style="color: var(--warning);">0</div>
           </div>
           <div class="stat-card">
-            <div class="label">Swaps / Shifts</div>
+            <div class="label" id="wb-movement-label">Swaps</div>
             <div class="value" id="wb-swaps" style="color: #c084fc;">0</div>
           </div>
           <div class="stat-card">
-            <div class="label">Outer Loop (i)</div>
+            <div class="label" id="wb-focus-label">Outer Loop (i)</div>
             <div class="value" id="wb-loop-i">0</div>
           </div>
           <div class="stat-card">
@@ -877,8 +945,11 @@
           <div class="slider-box">
             <span>Speed:</span>
             <input type="range" id="wb-speed" min="5" max="350" value="80" step="5" />
-            <span id="wb-speed-label" style="font-family: 'Fira Code', monospace;">80ms</span>
+            <span id="wb-speed-label" style="font-family: 'Fira Code', monospace;">280ms</span>
           </div>
+          <label style="font-size:0.8rem; color:var(--text-muted); display:flex; gap:7px; align-items:center;">
+            <input type="checkbox" id="wb-instant-movement" /> Instant bar movement
+          </label>
         </div>
       </div>
     </section>
@@ -893,67 +964,7 @@
         Quick visual reference for the algorithms visualized above. For rigorous proofs, formal loop invariants, and complete C++ implementations, consult the linked Markdown notes.
       </p>
 
-      <div class="ref-grid">
-        <!-- Bubble Sort Card -->
-        <div class="ref-card">
-          <div class="ref-card-header">
-            <span class="ref-card-title">Bubble Sort</span>
-            <div class="ref-badges">
-              <span class="ref-badge">O(N²)</span>
-              <span class="ref-badge stable">Stable</span>
-            </div>
-          </div>
-          <p class="ref-cue">
-            <strong>Visual Cue:</strong> Adjacent pairs slide and swap if out of order. After each pass, the largest remaining element sinks to the right end (<code>✓ Sunk</code>). Adaptive early exit halts if no swaps occur.
-          </p>
-          <a href="./theory.md#1-bubble-sort" class="ref-link">📖 Study Bubble Sort in theory.md →</a>
-        </div>
-
-        <!-- Selection Sort Card -->
-        <div class="ref-card">
-          <div class="ref-card-header">
-            <span class="ref-card-title">Selection Sort</span>
-            <div class="ref-badges">
-              <span class="ref-badge">O(N²)</span>
-              <span class="ref-badge unstable">Unstable</span>
-            </div>
-          </div>
-          <p class="ref-cue">
-            <strong>Visual Cue:</strong> Scans the unsorted suffix to locate the minimum element (<code>⭐ Min</code>), then executes at most <strong>one swap</strong> into the target slot (<code>🎯 Target</code>), minimizing memory writes.
-          </p>
-          <a href="./theory.md#2-selection-sort" class="ref-link">📖 Study Selection Sort in theory.md →</a>
-        </div>
-
-        <!-- Insertion Sort Card -->
-        <div class="ref-card">
-          <div class="ref-card-header">
-            <span class="ref-card-title">Insertion Sort</span>
-            <div class="ref-badges">
-              <span class="ref-badge">O(N²) / O(N)</span>
-              <span class="ref-badge stable">Stable</span>
-            </div>
-          </div>
-          <p class="ref-cue">
-            <strong>Visual Cue:</strong> Lifts the active element (<code>🃏 Key</code>) above the array, shifts larger sorted cards to the right (<code>➡️ Shift</code>), and drops the key into its sorted slot. Highly adaptive on nearly-sorted data.
-          </p>
-          <a href="./theory.md#3-insertion-sort" class="ref-link">📖 Study Insertion Sort in theory.md →</a>
-        </div>
-
-        <!-- Counting Sort Card -->
-        <div class="ref-card">
-          <div class="ref-card-header">
-            <span class="ref-card-title">Counting Sort</span>
-            <div class="ref-badges">
-              <span class="ref-badge">O(N + K)</span>
-              <span class="ref-badge stable">Non-Comparison</span>
-            </div>
-          </div>
-          <p class="ref-cue">
-            <strong>Visual Cue:</strong> Phase 1 scans range and tallies element counts in the live frequency map using an offset (supporting negative integers). Phase 2 reconstructs the array sequentially in linear time.
-          </p>
-          <a href="./theory.md#4-counting-sort" class="ref-link">📖 Study Counting Sort in theory.md →</a>
-        </div>
-      </div>
+      <div class="ref-grid" id="wb-reference-grid"></div>
     </section>
 
     <!-- ================= SECTION 3: COMPANION LEARNING RESOURCES ================= -->
@@ -991,7 +1002,7 @@
 
         <a href="./verify_all_sorts.cpp" class="nav-card">
           <span class="nav-card-name">🧪 verify_all_sorts.cpp</span>
-          <span class="nav-card-desc">Automated test harness testing 18 suites across boundary edge cases, INT_MIN/INT_MAX, and stability.</span>
+          <span class="nav-card-desc">Standalone C++ correctness checks for sorts, boundaries, selection, and stability examples. verify_notes.py also tests code extracted from the Markdown.</span>
         </a>
       </div>
     </section>
@@ -1029,6 +1040,95 @@
     });
 
     // ================= SORTING WORKBENCH ENGINE =================
+
+    const ALGORITHMS = {
+      bubble: {
+        name: 'Bubble Sort', anchor: '1-bubble-sort', stable: true,
+        bounds: 'Worst O(N²), best O(N) with early exit | Extra space O(1)',
+        movement: 'Swaps', focus: 'Pass i', example: 'default',
+        cue: 'Compare neighbours and swap the wrong pair. Each pass puts the largest remaining value at the right end.',
+        generate: generateBubbleTrace
+      },
+      selection: {
+        name: 'Selection Sort', anchor: '2-selection-sort', stable: false,
+        bounds: 'All cases O(N²) | Extra space O(1) | At most N-1 swaps',
+        movement: 'Swaps', focus: 'Position i', example: 'default',
+        cue: 'Find the smallest value in the unsorted suffix, then swap it into the next final position.',
+        generate: generateSelectionTrace
+      },
+      insertion: {
+        name: 'Insertion Sort', anchor: '3-insertion-sort', stable: true,
+        bounds: 'Worst O(N²), best O(N) | Extra space O(1)',
+        movement: 'Shifts + key writes', focus: 'Key index i', example: 'nearly',
+        cue: 'Save the next key, shift larger values right, and insert the key into the sorted prefix.',
+        generate: generateInsertionTrace
+      },
+      counting: {
+        name: 'Counting Sort', anchor: '4-counting-sort', stable: true,
+        bounds: 'O(N + K) time | O(N + K) space for these record-preserving versions',
+        movement: 'Output placements', focus: 'Input / count index', example: 'negatives',
+        cue: 'Use an offset to count negative or positive keys. Choose item-list reconstruction or stable prefix-sum placement.',
+        generate: generateCountingTrace,
+        variants: { frequency: 'Frequency + item lists', stable: 'Stable prefix sums' }
+      },
+      merge: {
+        name: 'Merge Sort', anchor: '5-merge-sort', stable: true,
+        bounds: 'O(N log N) time | O(N) buffer + O(log N) call stack',
+        movement: 'Buffer + array writes', focus: 'Recursion depth', example: 'default',
+        cue: 'Split into halves. Merge the sorted halves by taking their smaller front item. On a tie, take the left item first.',
+        generate: generateMergeTrace
+      },
+      quick: {
+        name: 'Quick Sort', anchor: '6-quick-sort', stable: false,
+        bounds: 'Average O(N log N), worst O(N²) | Stack depends on the chosen variant',
+        movement: 'Swaps', focus: 'Scan / split index', example: 'duplicates',
+        cue: 'Partition around a saved pivot, then sort the remaining groups. The three variants return different boundaries.',
+        generate: generateQuickTrace,
+        variants: { lomuto: 'Lomuto · smaller-side recursion', hoare: 'Hoare · inward scans', 'three-way': 'Three-way · equal band' }
+      },
+      heap: {
+        name: 'Heap Sort', anchor: '7-heap-sort', stable: false,
+        bounds: 'Worst O(N log N); all-equal may take O(N) | Extra space O(1), iterative sift-down',
+        movement: 'Swaps', focus: 'Heap / root index', example: 'default',
+        cue: 'Build a max-heap from the last parent upward. Move the root maximum to the end and repair the smaller heap.',
+        generate: generateHeapTrace
+      },
+      radix: {
+        name: 'Radix Sort', anchor: '8-radix-sort', stable: true,
+        bounds: 'O(D × (N + 10)) time | O(N + 10) space | D = number of decimal digits',
+        movement: 'Digit-pass placements', focus: 'Digit pass', example: 'radix',
+        cue: 'Sort by ones, then tens, then hundreds. Every digit pass is stable, so earlier digit ordering survives.',
+        generate: generateRadixTrace
+      },
+      bucket: {
+        name: 'Bucket Sort', anchor: '9-bucket-sort', stable: true,
+        bounds: 'Expected O(N) for independent uniform values; worst O(N²) | O(N) buckets/items',
+        movement: 'Bucket + output writes', focus: 'Bucket index', example: 'bucket',
+        cue: 'Scatter decimal values into N buckets, use stable Insertion Sort inside each bucket, then gather in bucket order.',
+        generate: generateBucketTrace
+      },
+      shell: {
+        name: 'Shell Sort', anchor: '10-shell-sort', stable: false,
+        bounds: 'Knuth gaps: worst O(N^1.5), sorted input O(N log N) | Extra space O(1)',
+        movement: 'Shifts + key writes', focus: 'Gap h', example: 'reversed',
+        cue: 'Use Insertion Sort on index groups separated by a gap. Shrink Knuth gaps 13, 4, 1; gap 1 finishes the sort.',
+        generate: generateShellTrace
+      },
+      dnf: {
+        name: 'Sort Colors / DNF', anchor: 'sort-colors', stable: false,
+        bounds: 'O(N) time, one classification loop | Extra space O(1)',
+        movement: 'Swaps', focus: 'Mid index', example: 'colors',
+        cue: 'Keep four regions: 0s, 1s, unknown, 2s. Move a 0 left, accept a 1, or move a 2 right and recheck mid.',
+        generate: generateDNFTrace
+      }
+    };
+    const QUICK_VARIANTS = {
+      lomuto: { bounds: 'Average O(N log N) for random distinct-key order; worst O(N²) | O(log N) bounded stack', cue: 'Last-item pivot. Return its final position p; sort [low..p-1] and [p+1..high]. Recurse on the smaller side, loop on the larger.' },
+      hoare: { bounds: 'Average O(N log N); worst O(N²) | O(N) worst stack for two-sided recursion', cue: 'Save the middle value. Scan inward, swapping misplaced items. Return split s; sort [low..s] and [s+1..high]. The pivot need not be at s.' },
+      'three-way': { bounds: 'All-equal O(N); worst O(N²) | O(N) worst recursive stack', cue: 'Group < pivot, = pivot, and > pivot values. The entire equal band is final and is excluded from later recursion.' }
+    };
+    const algorithmVariants = { counting: 'frequency', quick: 'lomuto' };
+
     const PRESETS = {
       default: [5, 3, 8, 4, 2],
       duplicates: [4, 2, 2, 8, 3, 3, 1],
@@ -1038,7 +1138,12 @@
       random: [8, 3, 6, 2, 7, 1, 5],
       negatives: [-3, 4, 0, -2, 5, -3, 2],
       single: [42],
-      sorted: [1, 2, 3, 4, 5, 6, 7]
+      sorted: [1, 2, 3, 4, 5, 6, 7],
+      radix: [170, 45, 75, 90, 802, 24, 2, 66],
+      bucket: [0.42, 0.12, 0.35, 0.18, 0.88, 0.63],
+      colors: [2, 0, 2, 1, 1, 0],
+      equal: [7, 7, 7, 7, 7],
+      empty: []
     };
 
     let curAlgo = 'bubble';
@@ -1070,6 +1175,12 @@
     const customInput = document.getElementById('wb-custom-input');
     const btnApplyCustom = document.getElementById('wb-btn-apply-custom');
     const customInputError = document.getElementById('custom-input-error');
+    const variantSelect = document.getElementById('wb-variant');
+    const variantGroup = document.getElementById('wb-variant-group');
+    const workingState = document.getElementById('wb-working-state');
+    const arrayReadout = document.getElementById('wb-array-readout');
+    const stepDetail = document.getElementById('wb-step-detail');
+    const frequencyTitle = document.getElementById('wb-frequency-title');
 
     // ================= STEP GENERATORS (OBJECT & PARTITION TRACKING) =================
 
@@ -1346,7 +1457,10 @@
       const trace = [];
       let comps = 0, writes = 0;
 
-      const cloneState = (liftedId = null) => items.map(it => ({ ...it, lifted: it.id === liftedId }));
+      // Shifting duplicates entries in the working array temporarily. Keep a
+      // separate identity list so the saved key stays visible in every frame.
+      const allItems = [...items];
+      const cloneState = (liftedId = null) => allItems.map(it => ({ ...it, lifted: it.id === liftedId }));
 
       if (n <= 1) {
         trace.push({
@@ -1448,7 +1562,7 @@
       return trace;
     }
 
-    // 4. Counting Sort Generator (Offset-aware for negative integers & O(1) bucketing)
+    // 4. Counting Sort Generator (Offset-aware; cursor-based item lists)
     function generateCountingTrace(rawArr) {
       let items = rawArr.map((val, idx) => ({ id: `el_${idx}`, val, slot: idx }));
       const n = items.length;
@@ -1474,6 +1588,7 @@
       const minVal = Math.min(...rawArr);
       const maxVal = Math.max(...rawArr);
       const range = maxVal - minVal + 1;
+      const rangeComparisons = 2 * (n - 1); // Separate minimum and maximum scans
 
       if (range > 40) {
         // Guard against visualizer lockup with large sparse ranges
@@ -1499,7 +1614,7 @@
         freqMap: [...freq],
         minVal,
         partition: [{ text: `📊 Phase 1: Range Scan [${minVal}..${maxVal}] (Size ${range})`, type: 'active' }],
-        i: 0, comps: n, swaps: writes,
+        i: 0, comps: rangeComparisons, swaps: writes,
         msg: `SCAN RANGE: Min = ${minVal}, Max = ${maxVal} -> Allocating count array of size ${range} with offset ${minVal}`
       });
 
@@ -1513,64 +1628,542 @@
           freqMap: [...freq],
           minVal,
           partition: [{ text: `📊 Phase 1: Frequency Tally (Item ${i+1}/${n})`, type: 'active' }],
-          i, comps: n, swaps: writes,
+          i, comps: rangeComparisons, swaps: writes,
           msg: `COUNT FREQ: Value ${items[i].val} (bucket [${bucket}]) incremented to ${freq[bucket]}`
         });
       }
 
-      // Phase 2: Reconstruction using O(1) Map bucketing (prevents repeated linear searches)
+      // Phase 2: Item lists preserve input order; a cursor avoids repeated Array.shift().
       const itemsByVal = new Map();
+      const nextItemByVal = new Map();
       items.forEach(it => {
-        if (!itemsByVal.has(it.val)) itemsByVal.set(it.val, []);
+        if (!itemsByVal.has(it.val)) {
+          itemsByVal.set(it.val, []);
+          nextItemByVal.set(it.val, 0);
+        }
         itemsByVal.get(it.val).push(it);
       });
 
       let sortedIdx = 0;
       const placedSet = new Set();
+      const reconstructed = [];
 
       for (let b = 0; b < range; b++) {
         const actualVal = b + minVal;
         while (freq[b] > 0) {
           writes++;
-          const targetItem = itemsByVal.get(actualVal).shift();
+          const cursor = nextItemByVal.get(actualVal);
+          const targetItem = itemsByVal.get(actualVal)[cursor];
+          nextItemByVal.set(actualVal, cursor + 1);
           if (targetItem) {
-            targetItem.slot = sortedIdx;
+            reconstructed.push(targetItem);
             placedSet.add(targetItem.id);
           }
           const recBadges = {};
           placedSet.forEach(id => { recBadges[id] = { text: '✓ Placed', type: 'sorted' }; });
           if (targetItem) recBadges[targetItem.id] = { text: `📦 ${actualVal}`, type: 'key' };
+          freq[b]--;
 
           trace.push({
             items: cloneState(),
             highlights: targetItem ? { [targetItem.id]: 'sorted' } : {},
             badges: recBadges,
             freqMap: [...freq],
+            buffer: reconstructed.map(item => ({ ...item })),
+            bufferTitle: 'Reconstructed output; input bars move after this buffer is complete',
             minVal,
             partition: [
               { text: `🟢 Placed Slots [0..${sortedIdx}]`, type: 'sorted' },
               { text: `📦 Phase 2: Array Reconstruction`, type: 'active' }
             ],
-            i: actualVal, comps: n, swaps: writes,
-            msg: `RECONSTRUCT: Placed ${actualVal} into sorted slot [${sortedIdx}] (remaining in bucket: ${freq[b] - 1})`
+            i: actualVal, comps: rangeComparisons, swaps: writes,
+            msg: `RECONSTRUCT: Placed ${actualVal} into output slot [${sortedIdx}] (remaining in bucket: ${freq[b]})`
           });
           sortedIdx++;
-          freq[b]--;
         }
       }
 
+      reconstructed.forEach((item, index) => { item.slot = index; });
       trace.push({
         items: cloneState(),
         highlights: 'all-sorted',
         badges: Object.fromEntries(items.map(it => [it.id, { text: '✓ Sorted', type: 'sorted' }])),
         freqMap: [...freq],
+        buffer: reconstructed.map(item => ({ ...item })),
+        bufferTitle: 'Completed reconstructed output',
         minVal,
         partition: [{ text: '🟢 Fully Sorted Output Array', type: 'sorted' }],
-        i: maxVal, comps: n, swaps: writes,
+        i: maxVal, comps: rangeComparisons, swaps: writes,
         msg: 'SUCCESS: Counting Sort complete!'
       });
       return trace;
     }
+
+    // Shared state for the additional sorts. IDs never change when bars move.
+    function validateSortingInput(values, algorithm) {
+      if (!values.every(Number.isFinite)) return 'Every value must be finite.';
+      if (algorithm === 'bucket') {
+        if (values.some(value => value < 0 || value >= 1)) {
+          return 'Bucket Sort needs values from 0 (included) to 1 (excluded). Try 0.42, 0.12, 0.35, 0.18.';
+        }
+        return null;
+      }
+      if (!values.every(Number.isSafeInteger)) return 'This algorithm needs whole, safely represented integers.';
+      if (algorithm === 'radix' && values.some(value => value < 0)) {
+        return 'Radix Sort here needs non-negative integers. Use Load example for a suitable array.';
+      }
+      if (algorithm === 'dnf' && values.some(value => value !== 0 && value !== 1 && value !== 2)) {
+        return 'Sort Colors accepts only 0, 1, and 2. Use Load example to try it.';
+      }
+      if (algorithm === 'counting' && values.length > 1) {
+        const range = Math.max(...values) - Math.min(...values) + 1;
+        if (!Number.isSafeInteger(range) || range > 40) return 'Counting Sort can display a value range of at most 40.';
+      }
+      return null;
+    }
+
+    function createTraceSession(rawArr, algorithm) {
+      const items = rawArr.map((val, index) => ({ id: `el_${index}`, val, slot: index }));
+      const session = {
+        items, order: [...items], steps: [], comparisons: 0, moves: 0, fixed: new Set(),
+        syncSlots() { this.order.forEach((item, index) => { item.slot = index; }); },
+        swap(a, b) {
+          [this.order[a], this.order[b]] = [this.order[b], this.order[a]];
+          this.moves++;
+          this.syncSlots();
+        },
+        record(message, info = {}) {
+          const highlights = Object.fromEntries([...this.fixed].map(id => [id, 'sorted']));
+          const badges = Object.fromEntries([...this.fixed].map(id => [id, { text: 'Final', type: 'sorted' }]));
+          this.steps.push({
+            items: this.items.map(item => ({ ...item })),
+            highlights: info.highlights === 'all-sorted' ? 'all-sorted' : { ...highlights, ...info.highlights },
+            badges: { ...badges, ...info.badges },
+            partition: info.partition || [{ text: message.split(':')[0], type: 'active' }],
+            i: info.i ?? 0, comps: this.comparisons, swaps: this.moves, msg: message,
+            status: info.status || 'running',
+            buffer: info.buffer ? info.buffer.map(item => item ? { id: item.id, val: item.val } : null) : null,
+            bufferTitle: info.bufferTitle || '',
+            groups: info.groups ? info.groups.map(group => ({
+              label: group.label,
+              items: group.items.map(item => item ? { id: item.id, val: item.val } : null)
+            })) : null,
+            freqMap: info.freqMap ? [...info.freqMap] : null,
+            freqKeys: info.freqKeys ? [...info.freqKeys] : null,
+            freqTitle: info.freqTitle || '',
+            minVal: info.minVal ?? 0,
+            heapSize: info.heapSize ?? null,
+            heapTitle: info.heapTitle || '',
+            detail: info.detail || ''
+          });
+        },
+        finish(message, info = {}) {
+          this.syncSlots();
+          this.items.forEach(item => { item.lifted = false; });
+          this.record(message, {
+            ...info, i: info.i ?? this.steps.at(-1)?.i ?? 0, status: 'complete', highlights: 'all-sorted',
+            badges: Object.fromEntries(this.items.map(item => [item.id, { text: 'Sorted', type: 'sorted' }])),
+            partition: [{ text: this.items.length === 0 ? 'Empty array: already sorted' : 'Fully sorted array', type: 'sorted' }]
+          });
+          return this.steps;
+        }
+      };
+      const error = validateSortingInput(rawArr, algorithm);
+      if (error) session.record(error, { status: 'error', partition: [{ text: 'Input does not fit this algorithm', type: 'unsorted' }] });
+      return session;
+    }
+
+    // Merge Sort: show both sorted halves and the temporary output explicitly.
+    function generateMergeTrace(rawArr) {
+      const s = createTraceSession(rawArr, 'merge');
+      if (s.steps.length) return s.steps;
+      if (s.order.length < 2) return s.finish('SUCCESS: Merge Sort complete.');
+      function sortRange(low, high, depth) {
+        if (low >= high) return;
+        const mid = low + Math.floor((high - low) / 2);
+        s.record(`DIVIDE: Split [${low}..${high}] into [${low}..${mid}] and [${mid + 1}..${high}].`, {
+          i: depth, partition: [{ text: `Left [${low}..${mid}]`, type: 'active' }, { text: `Right [${mid + 1}..${high}]`, type: 'unsorted' }]
+        });
+        sortRange(low, mid, depth + 1);
+        sortRange(mid + 1, high, depth + 1);
+        const left = s.order.slice(low, mid + 1), right = s.order.slice(mid + 1, high + 1), output = [];
+        const groups = () => [{ label: 'Sorted left half', items: left }, { label: 'Sorted right half', items: right }];
+        let i = 0, j = 0;
+        while (i < left.length && j < right.length) {
+          s.comparisons++;
+          s.record(`COMPARE: ${left[i].val} and ${right[j].val}. Take the left item on a tie.`, {
+            i: depth, highlights: { [left[i].id]: 'comparing', [right[j].id]: 'comparing' },
+            buffer: output, bufferTitle: `Merge buffer for [${low}..${high}]`, groups: groups()
+          });
+          const chosen = left[i].val <= right[j].val ? left[i++] : right[j++];
+          output.push(chosen); s.moves++;
+          s.record(`BUFFER: Copy ${chosen.val} into output position ${low + output.length - 1}.`, {
+            i: depth, highlights: { [chosen.id]: 'target' }, buffer: output,
+            bufferTitle: `Merge buffer for [${low}..${high}]`, groups: groups()
+          });
+        }
+        for (const remaining of [left.slice(i), right.slice(j)]) for (const chosen of remaining) {
+          output.push(chosen); s.moves++;
+          s.record(`LEFTOVER: Copy ${chosen.val}; the other half has no items left.`, {
+            i: depth, highlights: { [chosen.id]: 'target' }, buffer: output,
+            bufferTitle: `Merge buffer for [${low}..${high}]`, groups: groups()
+          });
+        }
+        s.order.splice(low, output.length, ...output);
+        s.moves += output.length; s.syncSlots();
+        s.record(`MERGE: Copy the buffer back. Range [${low}..${high}] is now sorted.`, {
+          i: depth, buffer: output, bufferTitle: 'Completed merge buffer', groups: groups(),
+          highlights: Object.fromEntries(output.map(item => [item.id, 'sorted'])),
+          detail: 'Green marks this sorted range. A later merge may still move its items.'
+        });
+      }
+      sortRange(0, s.order.length - 1, 0);
+      return s.finish('SUCCESS: Merge Sort complete.');
+    }
+
+    // Quick Sort variants use the exact boundaries taught in the notes.
+    function generateQuickTrace(rawArr, variant = 'lomuto') {
+      const s = createTraceSession(rawArr, 'quick');
+      if (s.steps.length) return s.steps;
+      function lomuto(low, high) {
+        const pivot = s.order[high];
+        let i = low - 1;
+        s.record(`PIVOT: Choose ${pivot.val}, the last item in [${low}..${high}].`, {
+          i: low, badges: { [pivot.id]: { text: 'Pivot', type: 'key' } },
+          detail: 'The scan builds a <= pivot group on the left. The pivot stays at high until the final swap.'
+        });
+        for (let j = low; j < high; j++) {
+          const item = s.order[j]; s.comparisons++;
+          s.record(`COMPARE: Is ${item.val} <= pivot ${pivot.val}?`, {
+            i: j, highlights: { [item.id]: 'comparing', [pivot.id]: 'target' },
+            badges: { [item.id]: { text: 'Scan j', type: 'target' }, [pivot.id]: { text: 'Pivot', type: 'key' } },
+            partition: [{ text: `<= pivot [${low}..${i}]`, type: 'active' }, { text: `Unchecked [${j}..${high - 1}]`, type: 'unsorted' }]
+          });
+          if (item.val <= pivot.val) {
+            i++; s.swap(i, j);
+            s.record(`SWAP: Put ${item.val} into the <= pivot group at index ${i}.`, {
+              i: j, highlights: { [item.id]: 'swapping' }, badges: { [pivot.id]: { text: 'Pivot', type: 'key' } }
+            });
+          }
+        }
+        s.swap(i + 1, high); s.fixed.add(pivot.id);
+        s.record(`PARTITION: Pivot ${pivot.val} is final at ${i + 1}. Sort the groups on either side.`, {
+          i: i + 1, partition: [{ text: `Left [${low}..${i}]`, type: 'active' }, { text: `Final pivot ${i + 1}`, type: 'sorted' }, { text: `Right [${i + 2}..${high}]`, type: 'unsorted' }]
+        });
+        return i + 1;
+      }
+      function boundedLomuto(low, high) {
+        while (low < high) {
+          const p = lomuto(low, high);
+          if (p - low < high - p) { boundedLomuto(low, p - 1); low = p + 1; }
+          else { boundedLomuto(p + 1, high); high = p - 1; }
+        }
+        if (low === high) s.fixed.add(s.order[low].id);
+      }
+      function hoare(low, high) {
+        if (low >= high) { if (low === high) s.fixed.add(s.order[low].id); return; }
+        const pivot = s.order[low + Math.floor((high - low) / 2)].val;
+        let i = low - 1, j = high + 1;
+        s.record(`PIVOT: Save middle value ${pivot}. Hoare returns a split, not a final pivot position.`, { i: low });
+        while (true) {
+          do {
+            i++; s.comparisons++;
+            s.record(`SCAN LEFT: ${s.order[i].val} < ${pivot}?`, { i, highlights: { [s.order[i].id]: 'comparing' } });
+          } while (s.order[i].val < pivot);
+          do {
+            j--; s.comparisons++;
+            s.record(`SCAN RIGHT: ${s.order[j].val} > ${pivot}?`, { i: j, highlights: { [s.order[j].id]: 'comparing' } });
+          } while (s.order[j].val > pivot);
+          if (i >= j) break;
+          const first = s.order[i], last = s.order[j]; s.swap(i, j);
+          s.record(`SWAP: Exchange indices ${i} and ${j}; continue both inward scans.`, {
+            i, highlights: { [first.id]: 'swapping', [last.id]: 'swapping' }
+          });
+        }
+        s.record(`SPLIT: Return ${j}. Recurse on [${low}..${j}] and [${j + 1}..${high}].`, {
+          i: j, partition: [{ text: `Left group [${low}..${j}]`, type: 'active' }, { text: `Right group [${j + 1}..${high}]`, type: 'unsorted' }],
+          detail: `The saved pivot value was ${pivot}. Split ${j} does not claim that the pivot is at this index.`
+        });
+        hoare(low, j); hoare(j + 1, high);
+      }
+      function threeWay(low, high) {
+        if (low >= high) { if (low === high) s.fixed.add(s.order[low].id); return; }
+        const pivot = s.order[low + Math.floor((high - low) / 2)].val;
+        let lt = low, current = low, gt = high;
+        while (current <= gt) {
+          const item = s.order[current]; s.comparisons++;
+          s.record(`CLASSIFY: Compare ${item.val} with saved pivot ${pivot}.`, {
+            i: current, highlights: { [item.id]: 'comparing' },
+            partition: [{ text: `< pivot [${low}..${lt - 1}]`, type: 'active' }, { text: `= pivot [${lt}..${current - 1}]`, type: 'active' }, { text: `Unknown [${current}..${gt}]`, type: 'unsorted' }, { text: `> pivot [${gt + 1}..${high}]`, type: 'active' }]
+          });
+          if (item.val < pivot) {
+            s.swap(lt, current); lt++; current++;
+            s.record(`MOVE LEFT: ${item.val} < ${pivot}; advance lt and the scan.`, { i: current });
+          } else {
+            s.comparisons++;
+            if (item.val > pivot) {
+              s.swap(current, gt); gt--;
+              s.record(`MOVE RIGHT: ${item.val} > ${pivot}; decrease gt and recheck the incoming item.`, { i: current });
+            } else { current++; s.record(`EQUAL: ${item.val} stays in the middle group.`, { i: current }); }
+          }
+        }
+        for (let index = lt; index <= gt; index++) s.fixed.add(s.order[index].id);
+        s.record(`PARTITION: Equal band [${lt}..${gt}] is final. Skip it in later recursion.`, { i: lt });
+        threeWay(low, lt - 1); threeWay(gt + 1, high);
+      }
+      if (variant === 'hoare') hoare(0, s.order.length - 1);
+      else if (variant === 'three-way') threeWay(0, s.order.length - 1);
+      else boundedLomuto(0, s.order.length - 1);
+      return s.finish('SUCCESS: Quick Sort complete.');
+    }
+
+    function generateHeapTrace(rawArr) {
+      const s = createTraceSession(rawArr, 'heap');
+      if (s.steps.length) return s.steps;
+      const n = s.order.length;
+      if (n < 2) return s.finish('SUCCESS: Heap Sort complete.', { heapSize: 0 });
+      function siftDown(size, root) {
+        while (root < Math.floor(size / 2)) {
+          const left = 2 * root + 1, right = left + 1;
+          let largest = left;
+          if (right < size) {
+            s.comparisons++;
+            s.record(`COMPARE CHILDREN: Choose the larger of ${s.order[left].val} and ${s.order[right].val}.`, {
+              i: root, heapSize: size, heapTitle: 'Choose the larger child',
+              highlights: { [s.order[left].id]: 'comparing', [s.order[right].id]: 'comparing' }
+            });
+            if (s.order[right].val > s.order[left].val) largest = right;
+          }
+          s.comparisons++;
+          s.record(`CHECK PARENT: Is ${s.order[root].val} >= child ${s.order[largest].val}?`, {
+            i: root, heapSize: size, heapTitle: 'Restore the max-heap',
+            highlights: { [s.order[root].id]: 'target', [s.order[largest].id]: 'comparing' }
+          });
+          if (s.order[root].val >= s.order[largest].val) break;
+          s.swap(root, largest);
+          s.record(`SIFT DOWN: Swap parent ${root} with child ${largest}; continue at that child.`, {
+            i: largest, heapSize: size, heapTitle: 'Restore the max-heap',
+            highlights: { [s.order[largest].id]: 'swapping', [s.order[root].id]: 'swapping' }
+          });
+          root = largest;
+        }
+      }
+      s.record('BUILD HEAP: Start at the last parent and work toward the root.', {
+        heapSize: n, heapTitle: 'Building the max-heap', i: Math.max(0, Math.floor(n / 2) - 1),
+        detail: 'Children are at 2*i+1 and 2*i+2. Sibling nodes do not have to be ordered.'
+      });
+      for (let root = Math.floor(n / 2) - 1; root >= 0; root--) siftDown(n, root);
+      s.record('HEAP READY: The maximum is at index 0; the array is not fully sorted yet.', { heapSize: n, heapTitle: 'Complete max-heap' });
+      for (let end = n - 1; end > 0; end--) {
+        const maximum = s.order[0]; s.swap(0, end); s.fixed.add(maximum.id);
+        s.record(`EXTRACT: Put maximum ${maximum.val} at final index ${end}. Repair the smaller heap.`, {
+          i: end, heapSize: end, heapTitle: 'Maximum removed; restoring heap',
+          partition: [{ text: `Active heap [0..${end - 1}]`, type: 'active' }, { text: `Final suffix [${end}..${n - 1}]`, type: 'sorted' }]
+        });
+        siftDown(end, 0);
+      }
+      return s.finish('SUCCESS: Heap Sort complete.', { heapSize: 0, heapTitle: 'All values extracted' });
+    }
+
+    function generateStableCountingTrace(rawArr) {
+      const s = createTraceSession(rawArr, 'counting');
+      if (s.steps.length) return s.steps;
+      if (rawArr.length < 2) return s.finish('SUCCESS: Counting Sort complete.');
+      const minimum = Math.min(...rawArr), maximum = Math.max(...rawArr);
+      const counts = Array(maximum - minimum + 1).fill(0);
+      const output = Array(rawArr.length).fill(null);
+      s.comparisons = 2 * (rawArr.length - 1);
+      for (const item of s.order) {
+        counts[item.val - minimum]++;
+        s.record(`COUNT: ${item.val} maps to index ${item.val - minimum}.`, {
+          i: item.slot, highlights: { [item.id]: 'comparing' }, freqMap: counts, minVal: minimum, freqTitle: 'Frequency counts'
+        });
+      }
+      for (let index = 1; index < counts.length; index++) {
+        counts[index] += counts[index - 1];
+        s.record(`PREFIX SUM: Count for ${minimum + index} is ${counts[index]}; its last output index is ${counts[index] - 1}.`, {
+          i: index, freqMap: counts, minVal: minimum, freqTitle: 'Cumulative counts, not zero-based indices'
+        });
+      }
+      for (let index = s.order.length - 1; index >= 0; index--) {
+        const item = s.order[index], bucket = item.val - minimum, destination = --counts[bucket];
+        output[destination] = item; s.moves++;
+        s.record(`PLACE BACKWARDS: Item ${item.val} (ID ${index}) goes to output index ${destination}.`, {
+          i: index, highlights: { [item.id]: 'target' }, buffer: output, bufferTitle: 'Stable output array',
+          freqMap: counts, minVal: minimum, freqTitle: 'Next placement boundaries',
+          detail: 'Read the input from right to left. Later equal items receive later output positions.'
+        });
+      }
+      s.order = [...output]; s.syncSlots();
+      return s.finish('SUCCESS: Stable Counting Sort complete.', {
+        buffer: output, bufferTitle: 'Completed stable output', freqMap: counts, minVal: minimum, freqTitle: 'Final placement boundaries'
+      });
+    }
+
+    function generateRadixTrace(rawArr) {
+      const s = createTraceSession(rawArr, 'radix');
+      if (s.steps.length) return s.steps;
+      if (rawArr.length < 2) return s.finish('SUCCESS: Radix Sort complete.');
+      const maximum = BigInt(Math.max(...rawArr));
+      s.comparisons = rawArr.length - 1; // Finding the maximum
+      const digits = Array.from({ length: 10 }, (_, digit) => `Digit ${digit}`);
+      let pass = 0;
+      for (let place = 1n; maximum / place > 0n; place *= 10n) {
+        pass++;
+        const count = Array(10).fill(0), output = Array(rawArr.length).fill(null);
+        const digitOf = item => Number((BigInt(item.val) / place) % 10n);
+        s.record(`DIGIT PASS: Sort by the digit at place ${place.toString()}. Earlier digit order must be preserved.`, {
+          i: pass, freqMap: count, freqKeys: digits, freqTitle: `Digit counts — place ${place.toString()}`,
+          detail: 'LSD means least significant digit first: ones, tens, hundreds, and so on.'
+        });
+        for (const item of s.order) {
+          const digit = digitOf(item); count[digit]++;
+          s.record(`COUNT DIGIT: ${item.val} has digit ${digit} at this place.`, {
+            i: pass, highlights: { [item.id]: 'comparing' }, freqMap: count, freqKeys: digits, freqTitle: 'Digit frequencies'
+          });
+        }
+        for (let digit = 1; digit < 10; digit++) count[digit] += count[digit - 1];
+        s.record('PREFIX SUM: Turn digit frequencies into output boundaries.', {
+          i: pass, freqMap: count, freqKeys: digits, freqTitle: 'Cumulative digit counts', buffer: output, bufferTitle: 'Output for this digit pass'
+        });
+        for (let index = s.order.length - 1; index >= 0; index--) {
+          const item = s.order[index], digit = digitOf(item), destination = --count[digit];
+          output[destination] = item; s.moves++;
+          s.record(`STABLE PLACE: Put ${item.val} (digit ${digit}) at output index ${destination}.`, {
+            i: pass, highlights: { [item.id]: 'target' }, buffer: output, bufferTitle: 'Stable digit-pass output',
+            freqMap: count, freqKeys: digits, freqTitle: 'Next digit placement boundaries'
+          });
+        }
+        s.order = [...output]; s.syncSlots();
+        s.record(`PASS COMPLETE: Copy the digit-sorted output back. ${pass} digit(s) are now processed.`, {
+          i: pass, buffer: output, bufferTitle: 'Result of this digit pass',
+          detail: 'This can still look unsorted by full value. Later digit passes finish the ordering.'
+        });
+      }
+      return s.finish('SUCCESS: Radix Sort complete.', { i: pass });
+    }
+
+    function generateBucketTrace(rawArr) {
+      const s = createTraceSession(rawArr, 'bucket');
+      if (s.steps.length) return s.steps;
+      const n = rawArr.length;
+      if (n < 2) return s.finish('SUCCESS: Bucket Sort complete.');
+      const buckets = Array.from({ length: n }, () => []);
+      const groups = () => buckets.map((items, index) => ({
+        label: `Bucket ${index}: ${index}/${n} <= value < ${index + 1}/${n}`, items
+      }));
+      for (const item of s.order) {
+        const index = Math.min(Math.floor(n * item.val), n - 1);
+        buckets[index].push(item); s.moves++;
+        s.record(`SCATTER: ${item.val} goes into bucket floor(${n} * ${item.val}) = ${index}.`, {
+          i: index, groups: groups(), highlights: { [item.id]: 'target' },
+          detail: 'Values in earlier buckets are no greater than values in later buckets. Each bucket still needs sorting.'
+        });
+      }
+      for (let bucketIndex = 0; bucketIndex < n; bucketIndex++) {
+        const bucket = buckets[bucketIndex];
+        for (let i = 1; i < bucket.length; i++) {
+          const key = bucket[i]; let j = i;
+          s.record(`SAVE KEY: In bucket ${bucketIndex}, insert ${key.val} into its sorted prefix.`, {
+            i: bucketIndex, groups: groups(), badges: { [key.id]: { text: 'Saved key', type: 'key' } }
+          });
+          while (j > 0) {
+            s.comparisons++;
+            s.record(`COMPARE: Bucket value ${bucket[j - 1].val} > saved key ${key.val}?`, {
+              i: bucketIndex, groups: groups(), highlights: { [bucket[j - 1].id]: 'comparing', [key.id]: 'target' }
+            });
+            if (bucket[j - 1].val <= key.val) break;
+            bucket[j] = bucket[j - 1]; j--; s.moves++;
+            s.record(`SHIFT: Move the larger bucket item right. The key ${key.val} is saved separately.`, {
+              i: bucketIndex, groups: groups(), badges: { [key.id]: { text: 'Saved key', type: 'key' } }
+            });
+          }
+          bucket[j] = key; s.moves++;
+          s.record(`INSERT: Put ${key.val} at bucket position ${j}.`, { i: bucketIndex, groups: groups() });
+        }
+      }
+      const output = [];
+      for (let index = 0; index < n; index++) for (const item of buckets[index]) {
+        output.push(item); s.moves++;
+        s.record(`GATHER: Copy ${item.val} from bucket ${index} to output index ${output.length - 1}.`, {
+          i: index, groups: groups(), buffer: output, bufferTitle: 'Gather buckets from left to right', highlights: { [item.id]: 'target' }
+        });
+      }
+      s.order = [...output]; s.syncSlots();
+      return s.finish('SUCCESS: Bucket Sort complete.', { groups: groups(), buffer: output, bufferTitle: 'Sorted gathered output' });
+    }
+
+    function generateShellTrace(rawArr) {
+      const s = createTraceSession(rawArr, 'shell');
+      if (s.steps.length) return s.steps;
+      const n = s.order.length;
+      if (n < 2) return s.finish('SUCCESS: Shell Sort complete.');
+      let gap = 1;
+      while (gap < Math.floor(n / 3)) gap = 3 * gap + 1;
+      while (gap >= 1 && n > 1) {
+        const groups = () => Array.from({ length: gap }, (_, offset) => ({
+          label: `Gap ${gap}, indices ${Array.from({ length: n }, (_, index) => index).filter(index => index % gap === offset).join(', ')}`,
+          items: s.order.filter((_, index) => index % gap === offset)
+        }));
+        s.record(`GAP PASS: Use gap ${gap}. Apply Insertion Sort inside each index group.`, { i: gap, groups: groups() });
+        for (let i = gap; i < n; i++) {
+          const key = s.order[i]; key.lifted = true;
+          let j = i;
+          s.record(`LIFT: Save key ${key.val} at index ${i}; compare ${gap} positions back.`, {
+            i: gap, groups: groups(), badges: { [key.id]: { text: 'Key', type: 'key' } }
+          });
+          while (j >= gap) {
+            s.comparisons++;
+            const prior = s.order[j - gap];
+            s.record(`COMPARE: ${prior.val} at index ${j - gap} > key ${key.val}?`, {
+              i: gap, highlights: { [prior.id]: 'comparing', [key.id]: 'target' }, badges: { [key.id]: { text: 'Key', type: 'key' } }
+            });
+            if (prior.val <= key.val) break;
+            s.order[j] = prior; prior.slot = j; j -= gap; s.moves++;
+            s.record(`SHIFT: Move ${prior.val} right by gap ${gap}, into index ${prior.slot}.`, {
+              i: gap, highlights: { [prior.id]: 'swapping' }, badges: { [key.id]: { text: 'Saved key', type: 'key' } }
+            });
+          }
+          s.order[j] = key; key.slot = j; key.lifted = false; s.moves++;
+          s.record(`INSERT: Place ${key.val} at index ${j}.`, { i: gap, groups: groups() });
+        }
+        s.record(`GAP COMPLETE: Each gap-${gap} group is sorted.`, { i: gap, groups: groups() });
+        gap = Math.floor(gap / 3);
+      }
+      return s.finish('SUCCESS: Shell Sort complete. The final gap was 1.');
+    }
+
+    function generateDNFTrace(rawArr) {
+      const s = createTraceSession(rawArr, 'dnf');
+      if (s.steps.length) return s.steps;
+      let low = 0, mid = 0, high = s.order.length - 1;
+      const partition = () => [
+        { text: `0s [0..${low - 1}]`, type: 'sorted' },
+        { text: `1s [${low}..${mid - 1}]`, type: 'active' },
+        { text: `Unknown [${mid}..${high}]`, type: 'unsorted' },
+        { text: `2s [${high + 1}..${s.order.length - 1}]`, type: 'sorted' }
+      ];
+      while (mid <= high) {
+        const item = s.order[mid]; s.comparisons++;
+        s.record(`INSPECT: Check value ${item.val} at mid ${mid}.`, {
+          i: mid, partition: partition(), highlights: { [item.id]: 'comparing' },
+          detail: `low=${low}, mid=${mid}, high=${high}. Each action removes one item from the unknown region.`
+        });
+        if (item.val === 0) {
+          s.swap(low, mid); low++; mid++;
+          s.record('MOVE 0 LEFT: Advance both low and mid. The incoming item is known, or this was a self-swap.', { i: mid, partition: partition() });
+        } else {
+          s.comparisons++;
+          if (item.val === 1) { mid++; s.record('ACCEPT 1: Advance mid to grow the ones region.', { i: mid, partition: partition() }); }
+          else {
+            s.swap(mid, high); high--;
+            s.record('MOVE 2 RIGHT: Decrease high, keep mid here, and inspect the incoming item next.', { i: mid, partition: partition() });
+          }
+        }
+      }
+      return s.finish('SUCCESS: Sort Colors complete. The unknown region is empty.', { i: mid });
+    }
+
 
     // ================= PERSISTENT BAR DOM ENGINE =================
 
@@ -1590,6 +2183,9 @@
         const barContainer = document.createElement('div');
         barContainer.className = 'bar-container';
         barContainer.id = `bar-${id}`;
+        barContainer.tabIndex = 0;
+        barContainer.setAttribute('role', 'img');
+        barContainer.title = `Value ${val}; original ID ${idx}`;
 
         const roleBadge = document.createElement('div');
         roleBadge.className = 'bar-role-badge';
@@ -1628,7 +2224,7 @@
     }
 
     function layoutBarsToSlots(items, highlights, badges = {}) {
-      const stageWidth = stage.clientWidth || 600;
+      const stageWidth = Math.max(stage.clientWidth || 600, items.length * 32 + 20);
       const n = items.length;
       if (n === 0) return;
 
@@ -1643,7 +2239,7 @@
         if (!barContainer) return;
 
         const leftPos = startX + item.slot * (barWidth + gap);
-        barContainer.style.left = `${leftPos}px`;
+        barContainer.style.transform = `translate(${leftPos}px, ${item.lifted ? -24 : 0}px)`;
         barContainer.style.width = `${barWidth}px`;
 
         if (item.lifted) {
@@ -1675,6 +2271,101 @@
 
         const barIdxEl = barContainer.querySelector('.bar-idx');
         if (barIdxEl) barIdxEl.innerText = `[${item.slot}]`;
+        const origin = item.id.slice(3);
+        barContainer.setAttribute('aria-label', `Value ${item.val}, original ID ${origin}, current index ${item.slot}${item.lifted ? ', key saved above the array' : ''}`);
+      });
+    }
+
+
+    function displayWorkingState(step) {
+      workingState.replaceChildren();
+      const hasContent = step.buffer !== null && step.buffer !== undefined || step.groups?.length || step.heapSize !== null && step.heapSize !== undefined;
+      workingState.hidden = !hasContent;
+      if (!hasContent) return;
+      function title(text) {
+        const node = document.createElement('div'); node.className = 'state-title'; node.textContent = text; workingState.appendChild(node);
+      }
+      function row(items, indexed = false, heapColumns = 0) {
+        const node = document.createElement('div'); node.className = 'state-row' + (heapColumns ? ' heap-level' : '');
+        if (heapColumns) node.style.gridTemplateColumns = `repeat(${heapColumns}, minmax(0, 1fr))`;
+        if (!items.length) {
+          const empty = document.createElement('span'); empty.className = 'state-chip empty'; empty.textContent = '(empty)'; node.appendChild(empty);
+        }
+        items.forEach((item, index) => {
+          const chip = document.createElement('span');
+          const state = item && typeof step.highlights === 'object' ? step.highlights[item.id] || '' : '';
+          chip.className = `state-chip ${item ? state : 'empty'}`;
+          chip.textContent = item ? heapColumns ? `${item.val}\n[${item.slot}]` : `${indexed ? `[${index}] ` : ''}${item.val} · #${item.id.slice(3)}` : `[${index}] —`;
+          if (item) chip.title = `Value ${item.val}; original ID ${item.id.slice(3)}`;
+          node.appendChild(chip);
+        });
+        workingState.appendChild(node);
+      }
+      if (step.heapSize !== null && step.heapSize !== undefined) {
+        title(step.heapTitle || 'Active heap: array indices shown below');
+        const order = [...step.items].sort((a, b) => a.slot - b.slot).slice(0, step.heapSize);
+        let start = 0, width = 1;
+        if (!order.length) row([]);
+        while (start < order.length) { row(order.slice(start, start + width), false, width); start += width; width *= 2; }
+      }
+      if (step.groups) step.groups.forEach(group => { title(group.label); row(group.items); });
+      if (step.buffer !== null && step.buffer !== undefined) { title(step.bufferTitle || 'Working output'); row(step.buffer, true); }
+    }
+
+    function updateControls() {
+      const invalid = traceSteps[0]?.status === 'error';
+      const atEnd = curStep >= traceSteps.length - 1;
+      btnPlay.disabled = invalid || !traceSteps.length || !isRunning && atEnd;
+      btnNext.disabled = invalid || atEnd;
+      btnPrev.disabled = invalid || curStep < 0;
+      btnSolve.disabled = invalid || !traceSteps.length;
+    }
+
+    function instantAction(action, event) {
+      const keyboard = event?.detail === 0;
+      if (keyboard) stage.classList.add('instant-step');
+      action();
+      if (keyboard) {
+        stage.getBoundingClientRect();
+        requestAnimationFrame(() => stage.classList.remove('instant-step'));
+      }
+    }
+
+    function configureAlgorithm() {
+      const config = ALGORITHMS[curAlgo];
+      const variant = algorithmVariants[curAlgo];
+      document.getElementById('wb-movement-label').textContent = config.movement;
+      document.getElementById('wb-focus-label').textContent = config.focus;
+      const selected = curAlgo === 'quick' ? QUICK_VARIANTS[variant] : config;
+      algoTag.textContent = selected.bounds;
+      document.getElementById('wb-algorithm-cue').textContent = selected.cue;
+      document.getElementById('wb-input-hint').textContent = curAlgo === 'bucket'
+        ? 'Input: finite decimals in [0, 1). The left endpoint is included; 1 is excluded.'
+        : curAlgo === 'radix' ? 'Input: non-negative whole integers. Digit reads are not pairwise key comparisons.'
+        : curAlgo === 'dnf' ? 'Input: only 0, 1, and 2. DNF is not stable for labelled records.'
+        : curAlgo === 'counting' ? 'Input: whole integers; negatives work with an offset. Value range K must be at most 40 for this display.'
+        : 'Input: whole integers. Key comparisons exclude loop checks and input validation.';
+      const link = document.getElementById('wb-theory-link'); link.href = `./theory.md#${config.anchor}`; link.textContent = `Read ${config.name} in the notes`;
+      customInput.placeholder = curAlgo === 'bucket' ? '0.42, 0.12, 0.35, 0.18 or []' : '12, -4, 0, 8, 3 or [] for empty';
+      variantGroup.hidden = !config.variants;
+      variantSelect.replaceChildren();
+      if (config.variants) Object.entries(config.variants).forEach(([value, label]) => {
+        const option = document.createElement('option'); option.value = value; option.textContent = label; variantSelect.appendChild(option);
+      });
+      if (config.variants) variantSelect.value = variant;
+    }
+
+    function buildAlgorithmCards() {
+      const grid = document.getElementById('wb-reference-grid');
+      Object.values(ALGORITHMS).forEach(config => {
+        const card = document.createElement('div'); card.className = 'ref-card';
+        const header = document.createElement('div'); header.className = 'ref-card-header';
+        const name = document.createElement('span'); name.className = 'ref-card-title'; name.textContent = config.name;
+        const badge = document.createElement('span'); badge.className = `ref-badge ${config.stable ? 'stable' : 'unstable'}`; badge.textContent = config.stable ? 'Stable version' : 'Unstable';
+        header.append(name, badge);
+        const cue = document.createElement('p'); cue.className = 'ref-cue'; cue.textContent = config.cue;
+        const link = document.createElement('a'); link.className = 'ref-link'; link.href = `./theory.md#${config.anchor}`; link.textContent = `Study ${config.name} →`;
+        card.append(header, cue, link); grid.appendChild(card);
       });
     }
 
@@ -1688,6 +2379,16 @@
       wbLoopI.innerText = step.i;
 
       layoutBarsToSlots(step.items, step.highlights, step.badges || {});
+      const saved = step.items.filter(item => item.lifted);
+      if (saved.length) {
+        const slots = Array(step.items.length).fill('—');
+        step.items.filter(item => !item.lifted).forEach(item => { slots[item.slot] = item.val; });
+        arrayReadout.textContent = 'Array slots: [' + slots.join(', ') + '] · Saved key: ' + saved.map(item => item.val).join(', ');
+      } else {
+        arrayReadout.textContent = 'Array order: [' + [...step.items].sort((a, b) => a.slot - b.slot).map(item => item.val).join(', ') + ']';
+      }
+      stepDetail.textContent = step.detail || step.msg;
+      displayWorkingState(step);
 
       // Update Partition Banner
       if (step.partition && partitionBanner) {
@@ -1701,16 +2402,17 @@
       }
 
       // Frequency HUD Update (Counting Sort)
-      if (curAlgo === 'counting' && step.freqMap && step.freqMap.length > 0) {
+      if (step.freqMap && step.freqMap.length > 0) {
         freqMapContainer.style.display = 'block';
         freqMapPills.innerHTML = '';
+        frequencyTitle.textContent = step.freqTitle || 'Live frequency counts (offset for negatives)';
         const minV = step.minVal !== undefined ? step.minVal : 0;
         step.freqMap.forEach((count, b) => {
           const actualVal = b + minV;
-          if (count > 0 || rawArray.includes(actualVal)) {
+          if (step.freqKeys || curAlgo !== 'counting' || count > 0 || rawArray.includes(actualVal)) {
             const pill = document.createElement('span');
             pill.style.cssText = `background: ${count > 0 ? 'rgba(56, 189, 248, 0.25)' : 'var(--bg-inset)'}; border: 1px solid ${count > 0 ? 'var(--primary)' : 'var(--border-color)'}; color: ${count > 0 ? 'var(--text-heading)' : 'var(--text-dim)'}; padding: 3px 10px; border-radius: 6px; font-weight: 800; font-size: 0.8rem;`;
-            pill.innerText = `Val ${actualVal} : ${count}x`;
+            pill.innerText = `${step.freqKeys ? step.freqKeys[b] : `Value ${actualVal}`} : ${count}`;
             freqMapPills.appendChild(pill);
           }
         });
@@ -1723,23 +2425,15 @@
       log.innerText = `> ${step.msg}`;
       wbTerminal.appendChild(log);
       wbTerminal.scrollTop = wbTerminal.scrollHeight;
+      updateControls();
     }
 
     function computeTrace() {
-      if (curAlgo === 'bubble') {
-        algoTag.innerText = 'Time: O(N²) / Best: O(N) | Space: O(1)';
-        return generateBubbleTrace(rawArray);
-      } else if (curAlgo === 'selection') {
-        algoTag.innerText = 'Time: O(N²) | Space: O(1) (Unstable, ≤ N-1 writes)';
-        return generateSelectionTrace(rawArray);
-      } else if (curAlgo === 'insertion') {
-        algoTag.innerText = 'Time: O(N²) / Best: O(N) | Space: O(1) (Adaptive)';
-        return generateInsertionTrace(rawArray);
-      } else if (curAlgo === 'counting') {
-        algoTag.innerText = 'Time: O(N + K) | Space: O(K) (Non-Comparison)';
-        return generateCountingTrace(rawArray);
-      }
-      return [];
+      configureAlgorithm();
+      const error = validateSortingInput(rawArray, curAlgo);
+      if (error) return createTraceSession(rawArray, curAlgo).steps;
+      if (curAlgo === 'counting' && algorithmVariants.counting === 'stable') return generateStableCountingTrace(rawArray);
+      return ALGORITHMS[curAlgo].generate(rawArray, algorithmVariants[curAlgo]);
     }
 
     function startPlayback() {
@@ -1752,8 +2446,7 @@
         if (curStep < traceSteps.length - 1) {
           curStep++;
           renderStep(curStep);
-          const delay = 360 - parseInt(speedSlider.value, 10);
-          runTimer = setTimeout(loop, Math.max(delay, 220));
+          runTimer = setTimeout(loop, playbackDelay());
         } else {
           pausePlayback();
         }
@@ -1765,6 +2458,7 @@
       isRunning = false;
       btnPlay.innerText = 'Play';
       clearTimeout(runTimer);
+      updateControls();
     }
 
     function resetWorkbench() {
@@ -1773,6 +2467,10 @@
       wbTerminal.innerHTML = '<div class="log-msg info">Engine reset to initial state.</div>';
       initPersistentBars(rawArray);
       traceSteps = computeTrace();
+      workingState.hidden = true; workingState.replaceChildren();
+      arrayReadout.textContent = 'Array order: [' + rawArray.join(', ') + ']';
+      stepDetail.textContent = 'Use Next to inspect one step, or Play to watch. Reset returns to the loaded input.';
+      customInputError.style.display = 'none';
       wbStep.innerText = '0';
       wbComparisons.innerText = '0';
       wbSwaps.innerText = '0';
@@ -1786,21 +2484,29 @@
       } else {
         freqMapContainer.style.display = 'none';
       }
+      if (traceSteps[0]?.status === 'error') {
+        customInputError.textContent = traceSteps[0].msg; customInputError.style.display = 'inline';
+        renderStep(0);
+      }
+      updateControls();
     }
 
     // Tabs
     tabButtons.forEach(btn => {
       btn.addEventListener('click', () => {
-        tabButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        tabButtons.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
+        btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true');
         curAlgo = btn.dataset.algo;
-        if (curAlgo === 'counting' && (presetSelect.value === 'default' || presetSelect.value === 'nearly')) {
-          presetSelect.value = 'duplicates';
-          rawArray = [...PRESETS.duplicates];
-        }
         resetWorkbench();
       });
     });
+
+    variantSelect.addEventListener('change', () => { algorithmVariants[curAlgo] = variantSelect.value; resetWorkbench(); });
+    document.getElementById('wb-btn-example').addEventListener('click', () => {
+      const preset = ALGORITHMS[curAlgo].example; presetSelect.value = preset;
+      rawArray = [...PRESETS[preset]]; customInput.value = rawArray.join(', '); resetWorkbench();
+    });
+    tabButtons.forEach(button => button.setAttribute('aria-pressed', button.dataset.algo === curAlgo ? 'true' : 'false'));
 
     // Presets
     presetSelect.addEventListener('change', e => {
@@ -1810,39 +2516,52 @@
       }
     });
 
-    // Custom Input
+    function playbackDelay() {
+      return Math.max(360 - Number(speedSlider.value), 220);
+    }
+
+    function parseCustomArray(value, algorithm = 'bubble') {
+      const input = value.trim();
+      if (input === '[]') return [];
+      if (!input) throw new Error('Enter comma-separated integers, or [] for an empty array.');
+      const tokens = input.split(',').map(token => token.trim());
+      if (tokens.length > 15) throw new Error('Max 15 elements for clear display.');
+      const pattern = algorithm === 'bucket' ? /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/ : /^[+-]?\d+$/;
+      if (tokens.some(token => !pattern.test(token))) {
+        throw new Error(algorithm === 'bucket' ? 'Every item must be a decimal value. Example: 0.42, 0.12.' : 'Every item must be a whole integer. Example: 3, -2, 0.');
+      }
+      const values = tokens.map(Number);
+      if (values.some(value => algorithm === 'bucket' ? !Number.isFinite(value) : !Number.isSafeInteger(value))) {
+        throw new Error('Use integers between -9007199254740991 and 9007199254740991.');
+      }
+      return values;
+    }
+
+    // Custom Input: reject the whole entry if any token is invalid.
     btnApplyCustom.addEventListener('click', () => {
-      const valStr = customInput.value.trim();
       customInputError.style.display = 'none';
-      if (!valStr) {
-        customInputError.innerText = 'Enter comma-separated integers.';
+      try {
+        rawArray = parseCustomArray(customInput.value, curAlgo);
+        presetSelect.value = 'custom';
+        resetWorkbench();
+      } catch (error) {
+        customInputError.innerText = error.message;
         customInputError.style.display = 'inline';
-        return;
       }
-      const parsed = valStr.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
-      if (parsed.length === 0) {
-        customInputError.innerText = 'Invalid input: no valid integers found.';
-        customInputError.style.display = 'inline';
-        return;
-      }
-      if (parsed.length > 15) {
-        customInputError.innerText = 'Max 15 elements for clear display.';
-        customInputError.style.display = 'inline';
-        return;
-      }
-      rawArray = parsed;
-      resetWorkbench();
     });
 
     btnPlay.addEventListener('click', () => isRunning ? pausePlayback() : startPlayback());
-    btnNext.addEventListener('click', () => { pausePlayback(); if (curStep < traceSteps.length - 1) renderStep(++curStep); });
-    btnPrev.addEventListener('click', () => { pausePlayback(); if (curStep > 0) renderStep(--curStep); });
-    btnSolve.addEventListener('click', () => { pausePlayback(); renderStep(curStep = traceSteps.length - 1); });
-    btnReset.addEventListener('click', resetWorkbench);
+    btnNext.addEventListener('click', event => instantAction(() => { pausePlayback(); if (curStep < traceSteps.length - 1) renderStep(++curStep); }, event));
+    btnPrev.addEventListener('click', event => instantAction(() => {
+      pausePlayback();
+      if (curStep > 0) renderStep(--curStep);
+      else if (curStep === 0) resetWorkbench();
+    }, event));
+    btnSolve.addEventListener('click', event => instantAction(() => { pausePlayback(); renderStep(curStep = traceSteps.length - 1); }, event));
+    btnReset.addEventListener('click', event => instantAction(resetWorkbench, event));
 
     speedSlider.addEventListener('input', e => {
-      const delay = 360 - parseInt(e.target.value, 10);
-      speedLabel.innerText = `${delay}ms`;
+      speedLabel.innerText = `${playbackDelay()}ms`;
     });
 
     window.addEventListener('resize', () => {
@@ -1854,6 +2573,12 @@
     });
 
     // Initialize
+    const instantMovement = document.getElementById('wb-instant-movement');
+    instantMovement.checked = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const applyInstantMovement = () => document.body.classList.toggle('instant-moves', instantMovement.checked);
+    instantMovement.addEventListener('change', applyInstantMovement);
+    applyInstantMovement();
+    buildAlgorithmCards();
     resetWorkbench();
   </script>
 </body>

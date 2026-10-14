@@ -1,46 +1,48 @@
-#include <iostream>
-#include <vector>
-#include <string>
-#include <algorithm>
-#include <cassert>
-#include <climits>
-#include <cmath>
-#include <stdexcept>
-#include <functional>
-#include <random>
-
+#include <iostream>  // for input and output
+#include <vector>    // for dynamic arrays
+#include <string>    // for text
+#include <algorithm> // for sorting and array helpers
+#include <utility>   // for swap, move, and pair
+#include <random>    // for random pivot selection
+#include <stdexcept> // for reporting invalid input
+#include <cmath>     // for checking decimal values
+#include <cstddef>   // for size_t, an array-size type
+#include <climits>   // for integer limits
+#include <cassert>   // for correctness checks
 using namespace std;
 
 // ==========================================
 // 1. BUBBLE SORT (Adaptive & Stable)
 // ==========================================
-void bubbleSort(vector<int>& arr) {
+void bubbleSort(vector<int>& arr){
     int n = arr.size();
-    for (int i = 0; i < n - 1; ++i) {
+    for(int i = 0; i < n - 1; ++i){
         bool swapped = false;
-        for (int j = 0; j < n - 1 - i; ++j) {
-            if (arr[j] > arr[j + 1]) {
+        for(int j = 0; j < n - 1 - i; ++j){
+            if(arr[j] > arr[j + 1]){
                 swap(arr[j], arr[j + 1]);
                 swapped = true;
             }
         }
-        if (!swapped) break;
+        if(!swapped){
+            break;
+        }
     }
 }
 
 // ==========================================
-// 2. SELECTION SORT (Minimal Writes & Unstable)
+// 2. SELECTION SORT (At Most n-1 Swaps & Unstable)
 // ==========================================
-void selectionSort(vector<int>& arr) {
+void selectionSort(vector<int>& arr){
     int n = arr.size();
-    for (int i = 0; i < n - 1; ++i) {
+    for(int i = 0; i < n - 1; ++i){
         int minIdx = i;
-        for (int j = i + 1; j < n; ++j) {
-            if (arr[j] < arr[minIdx]) {
+        for(int j = i + 1; j < n; ++j){
+            if(arr[j] < arr[minIdx]){
                 minIdx = j;
             }
         }
-        if (minIdx != i) {
+        if(minIdx != i){
             swap(arr[i], arr[minIdx]);
         }
     }
@@ -49,12 +51,12 @@ void selectionSort(vector<int>& arr) {
 // ==========================================
 // 3. INSERTION SORT (Shift Method & Stable)
 // ==========================================
-void insertionSort(vector<int>& arr) {
+void insertionSort(vector<int>& arr){
     int n = arr.size();
-    for (int i = 1; i < n; ++i) {
+    for(int i = 1; i < n; ++i){
         int key = arr[i];
         int j = i - 1;
-        while (j >= 0 && arr[j] > key) {
+        while(j >= 0 && arr[j] > key){
             arr[j + 1] = arr[j];
             j--;
         }
@@ -65,29 +67,31 @@ void insertionSort(vector<int>& arr) {
 // ==========================================
 // 4. COUNTING SORT (Stable, Offset for Negatives, Overflow Guard)
 // ==========================================
-void countingSort(vector<int>& arr) {
-    if (arr.size() <= 1) return;
+void countingSort(vector<int>& arr){
+    if(arr.size() <= 1){
+        return;
+    }
     int minVal = *min_element(arr.begin(), arr.end());
     int maxVal = *max_element(arr.begin(), arr.end());
 
     // Safe 64-bit range calculation preventing 32-bit signed overflow
     long long range = static_cast<long long>(maxVal) - minVal + 1;
-    if (range > 10000000) {
+    if(range > 10000000){
         throw invalid_argument("Value range too large for Counting Sort memory allocation.");
     }
 
     vector<int> count(range, 0);
-    for (int x : arr) {
+    for(int x : arr){
         count[x - minVal]++;
     }
 
-    for (size_t i = 1; i < count.size(); ++i) {
+    for(size_t i = 1; i < count.size(); ++i){
         count[i] += count[i - 1];
     }
 
     vector<int> output(arr.size());
     // Backward traversal preserves stability
-    for (int i = static_cast<int>(arr.size()) - 1; i >= 0; --i) {
+    for(int i = static_cast<int>(arr.size()) - 1; i >= 0; --i){
         int bucket = arr[i] - minVal;
         output[count[bucket] - 1] = arr[i];
         count[bucket]--;
@@ -99,36 +103,44 @@ void countingSort(vector<int>& arr) {
 // ==========================================
 // 5. MERGE SORT (Single Buffer & Stable)
 // ==========================================
-void mergeHelper(vector<int>& arr, int low, int mid, int high, vector<int>& temp) {
+void mergeHelper(vector<int>& arr, int low, int mid, int high, vector<int>& temp){
     int i = low;
     int j = mid + 1;
     int k = low;
 
-    while (i <= mid && j <= high) {
-        if (arr[i] <= arr[j]) { // '<=' ensures stability
+    while(i <= mid && j <= high){
+        if(arr[i] <= arr[j]){ // '<=' ensures stability
             temp[k++] = arr[i++];
         } else {
             temp[k++] = arr[j++];
         }
     }
-    while (i <= mid) temp[k++] = arr[i++];
-    while (j <= high) temp[k++] = arr[j++];
+    while(i <= mid){
+        temp[k++] = arr[i++];
+    }
+    while(j <= high){
+        temp[k++] = arr[j++];
+    }
 
-    for (int p = low; p <= high; ++p) {
+    for(int p = low; p <= high; ++p){
         arr[p] = temp[p];
     }
 }
 
-void mergeSortRec(vector<int>& arr, int low, int high, vector<int>& temp) {
-    if (low >= high) return;
+void mergeSortRec(vector<int>& arr, int low, int high, vector<int>& temp){
+    if(low >= high){
+        return;
+    }
     int mid = low + (high - low) / 2;
     mergeSortRec(arr, low, mid, temp);
     mergeSortRec(arr, mid + 1, high, temp);
     mergeHelper(arr, low, mid, high, temp);
 }
 
-void mergeSort(vector<int>& arr) {
-    if (arr.size() <= 1) return;
+void mergeSort(vector<int>& arr){
+    if(arr.size() <= 1){
+        return;
+    }
     vector<int> temp(arr.size());
     mergeSortRec(arr, 0, static_cast<int>(arr.size()) - 1, temp);
 }
@@ -136,11 +148,11 @@ void mergeSort(vector<int>& arr) {
 // ==========================================
 // 6. QUICK SORT (Lomuto, Hoare, 3-Way, & Explicit Bounded Stack)
 // ==========================================
-int lomutoPartition(vector<int>& arr, int low, int high) {
+int lomutoPartition(vector<int>& arr, int low, int high){
     int pivot = arr[high];
     int i = low - 1;
-    for (int j = low; j < high; ++j) {
-        if (arr[j] <= pivot) {
+    for(int j = low; j < high; ++j){
+        if(arr[j] <= pivot){
             i++;
             swap(arr[i], arr[j]);
         }
@@ -150,29 +162,31 @@ int lomutoPartition(vector<int>& arr, int low, int high) {
 }
 
 // Bounded call stack QuickSort: recurses on smaller partition, loops on larger
-void quickSortBoundedStack(vector<int>& arr, int low, int high) {
-    while (low < high) {
+void quickSortBoundedStack(vector<int>& arr, int low, int high){
+    while(low < high){
         int p = lomutoPartition(arr, low, high);
-        if (p - low < high - p) {
+        if(p - low < high - p){
             quickSortBoundedStack(arr, low, p - 1); // Recurse on smaller left
             low = p + 1;                            // Loop on larger right
         } else {
             quickSortBoundedStack(arr, p + 1, high); // Recurse on smaller right
-            high = p - 1;                           // Loop on larger left
+            high = p - 1;                            // Loop on larger left
         }
     }
 }
 
-void quickSort3Way(vector<int>& arr, int low, int high) {
-    if (low >= high) return;
+void quickSort3Way(vector<int>& arr, int low, int high){
+    if(low >= high){
+        return;
+    }
     int pivot = arr[low + (high - low) / 2];
     int lt = low;
     int gt = high;
     int i = low;
-    while (i <= gt) {
-        if (arr[i] < pivot) {
+    while(i <= gt){
+        if(arr[i] < pivot){
             swap(arr[lt++], arr[i++]);
-        } else if (arr[i] > pivot) {
+        } else if(arr[i] > pivot){
             swap(arr[i], arr[gt--]);
         } else {
             i++;
@@ -182,66 +196,115 @@ void quickSort3Way(vector<int>& arr, int low, int high) {
     quickSort3Way(arr, gt + 1, high);
 }
 
-// ==========================================
-// 7. HEAP SORT (0-Indexed & Sift-Down)
-// ==========================================
-void heapify(vector<int>& arr, int n, int i) {
-    int largest = i;
-    int left = 2 * i + 1;
-    int right = 2 * i + 2;
-
-    if (left < n && arr[left] > arr[largest]) largest = left;
-    if (right < n && arr[right] > arr[largest]) largest = right;
-
-    if (largest != i) {
-        swap(arr[i], arr[largest]);
-        heapify(arr, n, largest);
+int hoarePartition(vector<int>& arr, int low, int high){
+    int pivot = arr[low + (high - low) / 2]; // Save the value, not a reference
+    int i = low - 1;
+    int j = high + 1;
+    while(true){
+        do {
+            ++i;
+        } while(arr[i] < pivot);
+        do {
+            --j;
+        } while(arr[j] > pivot);
+        if(i >= j){
+            return j;
+        }
+        swap(arr[i], arr[j]);
     }
 }
 
-void heapSort(vector<int>& arr) {
+void quickSortHoare(vector<int>& arr, int low, int high){
+    if(low >= high){
+        return;
+    }
+    int split = hoarePartition(arr, low, high);
+    quickSortHoare(arr, low, split);
+    quickSortHoare(arr, split + 1, high);
+}
+
+// ==========================================
+// 7. HEAP SORT (0-Indexed & Sift-Down)
+// ==========================================
+// Sifts down an element at index i until it satisfies the Max-Heap property
+void heapify(vector<int>& arr, int n, int i){
+    while(i < n / 2){ // Only parents have children; avoids large-index overflow
+        int left = 2 * i + 1;
+        int right = left + 1;
+        int largest = left;
+        if(right < n && arr[right] > arr[left]){
+            largest = right;
+        }
+        if(arr[i] >= arr[largest]){
+            break;
+        }
+        swap(arr[i], arr[largest]);
+        i = largest; // Continue downward without recursion
+    }
+}
+
+void heapSort(vector<int>& arr){
     int n = arr.size();
-    if (n <= 1) return;
-    for (int i = n / 2 - 1; i >= 0; --i) {
+    if(n <= 1){
+        return;
+    }
+
+    // Phase 1: Build the Max-Heap in O(n) time
+    for(int i = n / 2 - 1; i >= 0; --i){
         heapify(arr, n, i);
     }
-    for (int i = n - 1; i > 0; --i) {
-        swap(arr[0], arr[i]);
-        heapify(arr, i, 0);
+
+    // Phase 2: Extract elements from the heap one by one in O(n log n)
+    for(int i = n - 1; i > 0; --i){
+        swap(arr[0], arr[i]); // Move current maximum to the end
+        heapify(arr, i, 0);   // Restore heap property on reduced heap
     }
 }
 
 // ==========================================
 // 8. RADIX SORT (Non-Negative Guarded & 64-bit exp Overflow Guard)
 // ==========================================
-void radixCountingSort(vector<int>& arr, long long exp) {
+void radixCountingSort(vector<int>& arr, long long exp){
     int n = arr.size();
     vector<int> output(n);
     int count[10] = {0};
 
-    for (int i = 0; i < n; ++i) {
+    // Frequency of current digit
+    for(int i = 0; i < n; ++i){
         int digit = (arr[i] / exp) % 10;
         count[digit]++;
     }
-    for (int i = 1; i < 10; ++i) {
+
+    // Prefix sums
+    for(int i = 1; i < 10; ++i){
         count[i] += count[i - 1];
     }
-    for (int i = n - 1; i >= 0; --i) {
+
+    // Backward loop preserves stability
+    for(int i = n - 1; i >= 0; --i){
         int digit = (arr[i] / exp) % 10;
         output[count[digit] - 1] = arr[i];
         count[digit]--;
     }
+
     arr = move(output);
 }
 
-void radixSort(vector<int>& arr) {
-    if (arr.size() <= 1) return;
-    for (int x : arr) {
-        if (x < 0) throw invalid_argument("Radix Sort precondition failed: non-negative integers required.");
+void radixSort(vector<int>& arr){
+    // Verify precondition: non-negative integers only
+    for(int x : arr){
+        if(x < 0){
+            throw invalid_argument("Radix Sort requires non-negative integers.");
+        }
     }
+
+    if(arr.size() <= 1){
+        return;
+    }
+
     int maxVal = *max_element(arr.begin(), arr.end());
     // Safe 'long long' exponent prevents signed 32-bit int overflow when maxVal is near INT_MAX
-    for (long long exp = 1; maxVal / exp > 0; exp *= 10) {
+    for(long long exp = 1; maxVal / exp > 0; exp *= 10){
         radixCountingSort(arr, exp);
     }
 }
@@ -249,40 +312,66 @@ void radixSort(vector<int>& arr) {
 // ==========================================
 // 9. BUCKET SORT ([0.0, 1.0) Range Guarded)
 // ==========================================
-void bucketSort(vector<double>& arr) {
+void bucketSort(vector<double>& arr){
     int n = arr.size();
-    if (n <= 1) return;
-    for (double val : arr) {
-        if (val < 0.0 || val >= 1.0) {
-            throw invalid_argument("Bucket Sort precondition failed: values must be in [0.0, 1.0).");
+
+    // Validate precondition: all elements must be in [0.0, 1.0)
+    for(double val : arr){
+        if(!isfinite(val) || val < 0.0 || val >= 1.0){
+            throw invalid_argument(
+                "Bucket Sort precondition violated: values must be in [0.0, 1.0).");
         }
     }
+
+    if(n <= 1){
+        return;
+    }
+
     vector<vector<double>> buckets(n);
-    for (double val : arr) {
+
+    // 1. Scatter into buckets
+    for(double val : arr){
         int idx = min(static_cast<int>(n * val), n - 1);
         buckets[idx].push_back(val);
     }
-    for (int i = 0; i < n; ++i) {
-        sort(buckets[i].begin(), buckets[i].end());
+
+    // 2. Sort individual buckets
+    // Stable insertion sort within each bucket
+    for(auto& bucket : buckets){
+        for(size_t i = 1; i < bucket.size(); ++i){
+            double key = bucket[i];
+            size_t j = i;
+            while(j > 0 && bucket[j - 1] > key){
+                bucket[j] = bucket[j - 1];
+                --j;
+            }
+            bucket[j] = key;
+        }
     }
-    int idx = 0;
-    for (int i = 0; i < n; ++i) {
-        for (double val : buckets[i]) arr[idx++] = val;
+
+    // 3. Gather back into arr
+    int k = 0;
+    for(int i = 0; i < n; ++i){
+        for(double val : buckets[i]){
+            arr[k++] = val;
+        }
     }
 }
 
 // ==========================================
 // 10. SHELL SORT (Knuth's Sequence)
 // ==========================================
-void shellSort(vector<int>& arr) {
+void shellSort(vector<int>& arr){
     int n = arr.size();
     int h = 1;
-    while (h < n / 3) h = 3 * h + 1;
-    while (h >= 1) {
-        for (int i = h; i < n; ++i) {
+    while(h < n / 3){
+        h = 3 * h + 1;
+    }
+    while(h >= 1){
+        for(int i = h; i < n; ++i){
             int temp = arr[i];
             int j = i;
-            while (j >= h && arr[j - h] > temp) {
+            while(j >= h && arr[j - h] > temp){
                 arr[j] = arr[j - h];
                 j -= h;
             }
@@ -295,75 +384,82 @@ void shellSort(vector<int>& arr) {
 // ==========================================
 // 11. QUICKSELECT (Iterative & Strict O(1) Auxiliary Space)
 // ==========================================
-int partitionQuickSelect(vector<int>& nums, int low, int high) {
-    static mt19937 rng(1337);
-    uniform_int_distribution<int> dist(low, high);
-    int randomIdx = dist(rng);
-    swap(nums[randomIdx], nums[high]);
-
-    int pivot = nums[high];
-    int i = low - 1;
-    for (int j = low; j < high; ++j) {
-        if (nums[j] <= pivot) {
-            i++;
-            swap(nums[i], nums[j]);
-        }
-    }
-    swap(nums[i + 1], nums[high]);
-    return i + 1;
-}
-
-int quickSelectIterative(vector<int>& nums, int targetIdx) {
-    int low = 0;
-    int high = static_cast<int>(nums.size()) - 1;
-
-    while (low <= high) {
-        if (low == high) return nums[low];
-
-        int p = partitionQuickSelect(nums, low, high);
-        if (p == targetIdx) {
-            return nums[p];
-        } else if (p > targetIdx) {
-            high = p - 1;
+// Randomised three-way partition: return the full equal-key band
+pair<int, int> partitionQuickSelect(vector<int>& nums, int low, int high){
+    static mt19937 rng(random_device{}());
+    uniform_int_distribution<int> pick(low, high);
+    int pivot = nums[pick(rng)];
+    int lt = low, current = low, gt = high;
+    while(current <= gt){
+        if(nums[current] < pivot){
+            swap(nums[lt++], nums[current++]);
+        } else if(nums[current] > pivot){
+            swap(nums[current], nums[gt--]);
         } else {
-            low = p + 1;
+            ++current;
         }
     }
-    return -1;
+    return {lt, gt};
 }
 
-int findKthLargest(vector<int>& nums, int k) {
-    int targetIdx = static_cast<int>(nums.size()) - k;
-    return quickSelectIterative(nums, targetIdx);
+int quickSelectIterative(vector<int>& nums, int targetIdx){
+    if(targetIdx < 0 || static_cast<size_t>(targetIdx) >= nums.size()){
+        throw invalid_argument("Target index out of range");
+    }
+    int low = 0, high = static_cast<int>(nums.size()) - 1;
+    while(low <= high){
+        auto [lt, gt] = partitionQuickSelect(nums, low, high);
+        if(targetIdx < lt){
+            high = lt - 1;
+        } else if(targetIdx > gt){
+            low = gt + 1;
+        } else {
+            return nums[targetIdx];
+        }
+    }
+    throw logic_error("Unreachable for a valid target");
+}
+
+int findKthLargest(vector<int>& nums, int k){
+    if(k < 1 || static_cast<size_t>(k) > nums.size()){
+        throw invalid_argument("Require 1 <= k <= size");
+    }
+    return quickSelectIterative(nums, static_cast<int>(nums.size()) - k);
 }
 
 // ==========================================
 // 12. COUNT INVERSIONS (Merge Sort Inversion Counter)
 // ==========================================
-long long mergeAndCount(vector<int>& arr, int low, int mid, int high, vector<int>& temp) {
+long long mergeAndCount(vector<int>& arr, int low, int mid, int high, vector<int>& temp){
     int i = low;
     int j = mid + 1;
     int k = low;
     long long count = 0;
 
-    while (i <= mid && j <= high) {
-        if (arr[i] <= arr[j]) {
+    while(i <= mid && j <= high){
+        if(arr[i] <= arr[j]){
             temp[k++] = arr[i++];
         } else {
             temp[k++] = arr[j++];
             count += (mid - i + 1);
         }
     }
-    while (i <= mid) temp[k++] = arr[i++];
-    while (j <= high) temp[k++] = arr[j++];
+    while(i <= mid){
+        temp[k++] = arr[i++];
+    }
+    while(j <= high){
+        temp[k++] = arr[j++];
+    }
 
-    for (int p = low; p <= high; ++p) arr[p] = temp[p];
+    for(int p = low; p <= high; ++p){
+        arr[p] = temp[p];
+    }
     return count;
 }
 
-long long countInversionsRec(vector<int>& arr, int low, int high, vector<int>& temp) {
+long long countInversionsRec(vector<int>& arr, int low, int high, vector<int>& temp){
     long long count = 0;
-    if (low < high) {
+    if(low < high){
         int mid = low + (high - low) / 2;
         count += countInversionsRec(arr, low, mid, temp);
         count += countInversionsRec(arr, mid + 1, high, temp);
@@ -372,8 +468,10 @@ long long countInversionsRec(vector<int>& arr, int low, int high, vector<int>& t
     return count;
 }
 
-long long countInversions(vector<int>& arr) {
-    if (arr.size() <= 1) return 0;
+long long countInversions(vector<int>& arr){
+    if(arr.size() <= 1){
+        return 0;
+    }
     vector<int> temp(arr.size());
     return countInversionsRec(arr, 0, static_cast<int>(arr.size()) - 1, temp);
 }
@@ -397,58 +495,60 @@ struct FloatRecord {
     }
 };
 
-// Stable Bucket Sort using std::stable_sort within buckets
-void bucketSortStable(vector<FloatRecord>& arr) {
+// Stable Bucket Sort using stable_sort within buckets
+void bucketSortStable(vector<FloatRecord>& arr){
     int n = arr.size();
-    if (n <= 1) return;
+    if(n <= 1){
+        return;
+    }
     vector<vector<FloatRecord>> buckets(n);
-    for (const auto& r : arr) {
+    for(const auto& r : arr){
         int idx = min(static_cast<int>(n * r.val), n - 1);
         buckets[idx].push_back(r);
     }
-    for (int i = 0; i < n; ++i) {
-        stable_sort(buckets[i].begin(), buckets[i].end(), [](const FloatRecord& a, const FloatRecord& b) {
-            return a.val < b.val;
-        });
+    for(int i = 0; i < n; ++i){
+        stable_sort(buckets[i].begin(), buckets[i].end(),
+                    [](const FloatRecord& a, const FloatRecord& b){ return a.val < b.val; });
     }
     int idx = 0;
-    for (int i = 0; i < n; ++i) {
-        for (const auto& r : buckets[i]) arr[idx++] = r;
+    for(int i = 0; i < n; ++i){
+        for(const auto& r : buckets[i]){
+            arr[idx++] = r;
+        }
     }
 }
 
 // ==========================================
 // COMPREHENSIVE TEST SUITE
 // ==========================================
-int main() {
+int main(){
     cout << "=====================================================" << endl;
     cout << "RUNNING THOROUGH SORTING VERIFICATION & AUDIT SUITE" << endl;
     cout << "=====================================================" << endl;
 
     // 1. General Integer Sorting Tests (Empty, Single, Duplicates, Negatives, Sorted, Reverse)
     vector<vector<int>> generalCases = {
-        {},                                                 // Empty array
-        {42},                                               // Single element
-        {1, 2, 3, 4, 5, 6, 7, 8, 9, 10},                    // Already sorted
-        {10, 9, 8, 7, 6, 5, 4, 3, 2, 1},                    // Reverse sorted
-        {7, 7, 7, 7, 7, 7, 7, 7},                           // All duplicates
-        {3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5},                  // Mixed with duplicates
-        {-5, 12, -3, 0, 8, -15, 20, 1, -1},                 // Negatives, zero, positives
-        {100, -100, 50, -50, 0, 25, -25},                   // Symmetric negative values
-        {-500, -250, 0, 250, 500}                           // Bounded negative range
+        {},                                 // Empty array
+        {42},                               // Single element
+        {1, 2, 3, 4, 5, 6, 7, 8, 9, 10},    // Already sorted
+        {10, 9, 8, 7, 6, 5, 4, 3, 2, 1},    // Reverse sorted
+        {7, 7, 7, 7, 7, 7, 7, 7},           // All duplicates
+        {3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5},  // Mixed with duplicates
+        {-5, 12, -3, 0, 8, -15, 20, 1, -1}, // Negatives, zero, positives
+        {100, -100, 50, -50, 0, 25, -25},   // Symmetric negative values
+        {-500, -250, 0, 250, 500}           // Bounded negative range
     };
 
     // Extreme INT_MIN / INT_MAX boundaries for comparison-based sorts
     vector<vector<int>> extremeComparisonCases = {
         {INT_MAX, INT_MIN, 0, -1, 1, INT_MAX - 1, INT_MIN + 1},
         {INT_MIN, INT_MAX},
-        {INT_MAX, INT_MAX, INT_MIN, INT_MIN}
-    };
+        {INT_MAX, INT_MAX, INT_MIN, INT_MIN}};
 
-    auto testComparisonSort = [&](const string& name, auto sortFn) {
+    auto testComparisonSort = [&](const string& name, auto sortFn){
         cout << "[TEST] " << name << " ... ";
         // Test on general cases (empty, single, sorted, reverse, duplicates, negatives)
-        for (const auto& original : generalCases) {
+        for(const auto& original : generalCases){
             vector<int> arr = original;
             sortFn(arr);
             vector<int> expected = original;
@@ -456,7 +556,7 @@ int main() {
             assert(arr == expected);
         }
         // Test on extreme INT_MIN / INT_MAX boundary cases
-        for (const auto& original : extremeComparisonCases) {
+        for(const auto& original : extremeComparisonCases){
             vector<int> arr = original;
             sortFn(arr);
             vector<int> expected = original;
@@ -470,18 +570,25 @@ int main() {
     testComparisonSort("Selection Sort", selectionSort);
     testComparisonSort("Insertion Sort (Shift)", insertionSort);
     testComparisonSort("Merge Sort (Single Buffer)", mergeSort);
-    testComparisonSort("Quick Sort (Bounded Stack)", [](vector<int>& arr) {
-        if (!arr.empty()) quickSortBoundedStack(arr, 0, arr.size() - 1);
+    testComparisonSort("Quick Sort (Bounded Stack)", [](vector<int>& arr){
+        if(!arr.empty()){
+            quickSortBoundedStack(arr, 0, arr.size() - 1);
+        }
     });
-    testComparisonSort("Quick Sort (3-Way DNF)", [](vector<int>& arr) {
-        if (!arr.empty()) quickSort3Way(arr, 0, arr.size() - 1);
+    testComparisonSort("Quick Sort (3-Way DNF)", [](vector<int>& arr){
+        if(!arr.empty()){
+            quickSort3Way(arr, 0, arr.size() - 1);
+        }
     });
-    testComparisonSort("Heap Sort (0-indexed)", heapSort);
+    testComparisonSort("Quick Sort (Hoare)", [](vector<int>& arr){
+        quickSortHoare(arr, 0, static_cast<int>(arr.size()) - 1);
+    });
+    testComparisonSort("Heap Sort (0-indexed, iterative)", heapSort);
     testComparisonSort("Shell Sort (Knuth Sequence)", shellSort);
 
     // Counting Sort on general cases
     cout << "[TEST] Counting Sort (Stable with Offset) ... ";
-    for (const auto& original : generalCases) {
+    for(const auto& original : generalCases){
         vector<int> arr = original;
         countingSort(arr);
         vector<int> expected = original;
@@ -497,7 +604,7 @@ int main() {
         bool caught1 = false;
         try {
             countingSort(hugeRange);
-        } catch (const invalid_argument&) {
+        } catch(const invalid_argument&){
             caught1 = true;
         }
         assert(caught1);
@@ -506,7 +613,7 @@ int main() {
         bool caught2 = false;
         try {
             countingSort(intMinMax);
-        } catch (const invalid_argument&) {
+        } catch(const invalid_argument&){
             caught2 = true;
         }
         assert(caught2);
@@ -531,7 +638,7 @@ int main() {
         bool caught = false;
         try {
             radixSort(invalidRadix);
-        } catch (const invalid_argument&) {
+        } catch(const invalid_argument&){
             caught = true;
         }
         assert(caught);
@@ -544,7 +651,7 @@ int main() {
         vector<double> expBucket = validBucket;
         sort(expBucket.begin(), expBucket.end());
         bucketSort(validBucket);
-        for (size_t i = 0; i < validBucket.size(); ++i) {
+        for(size_t i = 0; i < validBucket.size(); ++i){
             assert(fabs(validBucket[i] - expBucket[i]) < 1e-9);
         }
 
@@ -552,7 +659,7 @@ int main() {
         bool caught = false;
         try {
             bucketSort(outOfBounds);
-        } catch (const invalid_argument&) {
+        } catch(const invalid_argument&){
             caught = true;
         }
         assert(caught);
@@ -564,11 +671,10 @@ int main() {
     {
         vector<Record> input = {{3, 1}, {1, 2}, {3, 3}, {2, 4}, {3, 5}, {1, 6}};
 
-        // Test with std::stable_sort
+        // Test with stable_sort
         vector<Record> stableArr = input;
-        stable_sort(stableArr.begin(), stableArr.end(), [](const Record& a, const Record& b) {
-            return a.key < b.key;
-        });
+        stable_sort(stableArr.begin(), stableArr.end(),
+                    [](const Record& a, const Record& b){ return a.key < b.key; });
 
         // Key 1: original ids must be 2, then 6
         assert(stableArr[0].key == 1 && stableArr[0].id == 2);
@@ -585,9 +691,8 @@ int main() {
     // 4. Bucket Sort Subroutine-Dependent Stability Verification
     cout << "[TEST] Bucket Sort Subroutine-Dependent Stability Verification ... ";
     {
-        vector<FloatRecord> floatData = {
-            {0.42, 1}, {0.15, 2}, {0.42, 3}, {0.88, 4}, {0.15, 5}, {0.42, 6}
-        };
+        vector<FloatRecord> floatData = {{0.42, 1}, {0.15, 2}, {0.42, 3},
+                                         {0.88, 4}, {0.15, 5}, {0.42, 6}};
         bucketSortStable(floatData);
 
         // Value 0.15: ID 2 before ID 5
@@ -599,11 +704,11 @@ int main() {
         assert(fabs(floatData[4].val - 0.42) < 1e-9 && floatData[4].id == 6);
         // Value 0.88: ID 4
         assert(fabs(floatData[5].val - 0.88) < 1e-9 && floatData[5].id == 4);
-        cout << "PASSED (std::stable_sort inside buckets preserves stability)!" << endl;
+        cout << "PASSED (stable_sort inside buckets preserves stability)!" << endl;
     }
 
     // 5. C++ STL Selection Functions
-    cout << "[TEST] std::partial_sort & std::nth_element Verification ... ";
+    cout << "[TEST] partial_sort & nth_element Verification ... ";
     {
         vector<int> pArr = {10, 2, 8, 6, 7, 3, 1, 5};
         partial_sort(pArr.begin(), pArr.begin() + 3, pArr.end());
@@ -612,8 +717,12 @@ int main() {
         vector<int> nArr = {10, 2, 8, 6, 7, 3, 1, 5};
         nth_element(nArr.begin(), nArr.begin() + 3, nArr.end());
         assert(nArr[3] == 5); // 4th smallest element
-        for (int i = 0; i < 3; ++i) assert(nArr[i] <= nArr[3]);
-        for (size_t i = 4; i < nArr.size(); ++i) assert(nArr[i] >= nArr[3]);
+        for(int i = 0; i < 3; ++i){
+            assert(nArr[i] <= nArr[3]);
+        }
+        for(size_t i = 4; i < nArr.size(); ++i){
+            assert(nArr[i] >= nArr[3]);
+        }
         cout << "PASSED!" << endl;
     }
 
@@ -641,8 +750,8 @@ int main() {
         // Negative numbers and duplicates
         vector<int> qNeg = {-10, 0, -5, 20, 15, -10, 20};
         // Sorted: [-10, -10, -5, 0, 15, 20, 20]
-        assert(findKthLargest(qNeg, 1) == 20); // 1st largest: 20
-        assert(findKthLargest(qNeg, 3) == 15); // 3rd largest: 15
+        assert(findKthLargest(qNeg, 1) == 20);  // 1st largest: 20
+        assert(findKthLargest(qNeg, 3) == 15);  // 3rd largest: 15
         assert(findKthLargest(qNeg, 7) == -10); // 7th largest (min): -10
         cout << "PASSED!" << endl;
     }
@@ -667,7 +776,7 @@ int main() {
     // 8. Strict Weak Ordering Irreflexivity Check
     cout << "[TEST] Strict Weak Ordering Irreflexivity Check ... ";
     {
-        auto validComp = [](int a, int b) { return a < b; };
+        auto validComp = [](int a, int b){ return a < b; };
         assert(validComp(42, 42) == false); // Irreflexivity holds!
         cout << "PASSED (comp(x, x) == false verified)!" << endl;
     }

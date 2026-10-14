@@ -1,7 +1,7 @@
 # Sorting Algorithms — Active Practice & Problem Solving
 
 > **Module:** `unified-notes/DSA/Sorting/practice.md`  
-> **Purpose:** Hands-on code tracing, debugging challenges, algorithmic implementation tasks, and progressive hint-driven problem solving.  
+> **Purpose:** Learn by doing. Trace small arrays, find bugs, then write and explain your own code.
 > **Rules:** Attempt every challenge independently before consulting the **Solutions & Explanations** section at the bottom.
 
 ---
@@ -17,6 +17,8 @@ Given array $A = [3, 1, 2, 4, 5, 6]$:
 ---
 
 ### Challenge 1.2: Lomuto vs. Hoare Partition Comparison
+
+Use the exact [partition implementations in theory](./theory.md#hoare-partition), starting each trace from a fresh copy of the input.
 Given array $A = [10, 80, 30, 90, 40, 50, 70]$:
 1. **Lomuto Partition:** Using the last element (`70`) as the pivot, trace the movements of pointers $i$ and $j$, list every swap executed, and identify the final returned pivot index.
 2. **Hoare Partition:** Using the middle element (`90` at index 3) as the pivot, trace the movements of pointers $i$ and $j$, list every swap executed, and identify the final split index.
@@ -32,31 +34,63 @@ Given array $A = [4, -2, 0, 4, -2, 1]$:
 
 ---
 
+### Challenge 1.4: Sorted prefix versus final prefix
+
+Start with `[4, 3, 2, 1]` and use a fresh copy for each algorithm.
+
+1. Write the array after each Selection Sort pass and after each Insertion Sort pass.
+2. Mark the processed prefix. Which algorithm can move those processed items again later?
+3. Trace insertion of 1 into `[2, 3, 4, 1]`, including the saved key and temporary repeated values.
+
+### Challenge 1.5: DNF and duplicates
+
+Trace `[1, 2, 0]` with `low`, `mid`, and `high`. Show why advancing `mid` after swapping with `high` gives the wrong result. Then trace `[2a, 2b, 0]` to check stability, comparing only colour values.
+
+### Challenge 1.6: Padded merge and Next Permutation
+
+1. Merge `nums1 = [-3, 0, 4, _, _, _]`, `m=3`, with `nums2 = [-2, 0, 5]`, `n=3`. Record `i`, `j`, and `write` before each assignment. Why is the first zero real data?
+2. Find the next permutation of `[1, 5, 5]`, `[2, 3, 1]`, and `[3, 2, 1]`. Identify the pivot, successor, and suffix in each case.
+3. Explain why Next Permutation is not the same task as sorting.
+
+### Challenge 1.7: Match the algorithm to the assumptions
+
+Choose a method and state its time and extra memory:
+
+- Find only the maximum of a million values.
+- Sort students by marks while keeping arrival order for equal marks.
+- Sort signed integers whose values lie between -10 and 10.
+- Find the fifth largest value without needing a fully sorted array.
+- Sort data larger than RAM.
+
 ## 2. Debugging Challenges (Spot the Bug)
 
 ### Bug 2.1: The Fatal C++ Comparator
 A developer writes the following comparator to sort student structures by score in descending order:
 ```cpp
+#include <vector>    // for dynamic arrays
+#include <algorithm> // for sorting and array helpers
+using namespace std;
+
 struct Student {
     int id;
     int score;
 };
 
 // Intended: Sort by score descending; if equal, by id ascending
-bool compareStudents(const Student& a, const Student& b) {
-    if (a.score != b.score) {
+bool compareStudents(const Student& a, const Student& b){
+    if(a.score != b.score){
         return a.score >= b.score; // BUG HERE?
     }
-    return a.id <= b.id;           // BUG HERE?
+    return a.id <= b.id; // BUG HERE?
 }
 
-void sortStudents(std::vector<Student>& v) {
-    std::sort(v.begin(), v.end(), compareStudents);
+void sortStudents(vector<Student>& v){
+    sort(v.begin(), v.end(), compareStudents);
 }
 ```
 **Questions:**
 1. What axiom of Strict Weak Ordering is violated?
-2. What failure may occur when passed to `std::sort` under the C++ standard?
+2. What failure may occur when passed to `sort` under the C++ standard?
 3. Write the corrected comparator.
 
 ---
@@ -64,19 +98,24 @@ void sortStudents(std::vector<Student>& v) {
 ### Bug 2.2: The Subtly Broken Heapify
 The following C++ function attempts to restore the Max-Heap property:
 ```cpp
-void brokenHeapify(int arr[], int n, int i) {
+#include <utility> // for swap, move, and pair
+using namespace std;
+
+void brokenHeapify(int arr[], int n, int i){
     int largest = i;
     int left = 2 * i;      // LINE A
     int right = 2 * i + 1; // LINE B
 
-    if (left < n && arr[left] > arr[largest])
+    if(left < n && arr[left] > arr[largest]){
         largest = left;
+    }
 
-    if (right < n && arr[right] > arr[largest])
+    if(right < n && arr[right] > arr[largest]){
         largest = right;
+    }
 
-    if (largest != i) {
-        std::swap(arr[i], arr[largest]);
+    if(largest != i){
+        swap(arr[i], arr[largest]);
         // LINE C: Recursion missing?
     }
 }
@@ -90,22 +129,26 @@ void brokenHeapify(int arr[], int n, int i) {
 ### Bug 2.3: In-Place Counting Sort Data Loss
 A student implements Counting Sort for a list of employee records sorted by department ID:
 ```cpp
+#include <vector> // for dynamic arrays
+#include <string> // for text
+using namespace std;
+
 struct Employee {
     int deptId;
-    std::string name;
+    string name;
 };
 
-void sortEmployees(std::vector<Employee>& emp) {
+void sortEmployees(vector<Employee>& emp){
     int maxDept = 100;
-    std::vector<int> count(maxDept + 1, 0);
+    vector<int> count(maxDept + 1, 0);
 
-    for (const auto& e : emp) {
+    for(const auto& e : emp){
         count[e.deptId]++;
     }
 
     int idx = 0;
-    for (int d = 0; d <= maxDept; ++d) {
-        while (count[d] > 0) {
+    for(int d = 0; d <= maxDept; ++d){
+        while(count[d] > 0){
             emp[idx].deptId = d; // Overwrite deptId
             count[d]--;
             idx++;
@@ -122,13 +165,17 @@ void sortEmployees(std::vector<Employee>& emp) {
 ### Bug 2.4: The Bubble Sort Off-by-One Boundary Trap
 A student implements the inner loop of Bubble Sort as follows:
 ```cpp
-void brokenBubbleSort(std::vector<int>& arr) {
+#include <vector>  // for dynamic arrays
+#include <utility> // for swap, move, and pair
+using namespace std;
+
+void brokenBubbleSort(vector<int>& arr){
     int n = arr.size();
-    for (int i = 0; i < n - 1; ++i) {
+    for(int i = 0; i < n - 1; ++i){
         // Notice the loop termination condition:
-        for (int j = 0; j < n - i; ++j) {
-            if (arr[j] > arr[j + 1]) {
-                std::swap(arr[j], arr[j + 1]);
+        for(int j = 0; j < n - i; ++j){
+            if(arr[j] > arr[j + 1]){
+                swap(arr[j], arr[j + 1]);
             }
         }
     }
@@ -142,11 +189,15 @@ void brokenBubbleSort(std::vector<int>& arr) {
 
 ## 3. Implementation Challenges
 
+### Course drill: Descending order
+
+Using `[3,6,2,1,8,7,4,5,3,1]`, implement descending Bubble, Selection, Insertion, and frequency Counting Sort. For each, state the one decision you changed. Then use Insertion Sort to change `"fbaecd"` to `"fedcba"`.
+
 ### Level 1 (Easy): In-Place Char Array Sort
-Write a C++ function `void sortStringAlphabetically(std::string& s)` that sorts a lowercase ASCII string `s` in $O(n)$ time and $O(1)$ auxiliary space.
+Write a C++ function `void sortStringAlphabetically(string& s)` that sorts a lowercase ASCII string `s` in $O(n)$ time and $O(1)$ auxiliary space.
 
 ### Level 2 (Medium): Sort $k$-Sorted Array
-Given an array of $n$ elements where each element is at most $k$ positions away from its target sorted position, sort the array in $O(n \log k)$ time and $O(k)$ auxiliary space.
+Given an array of $n$ elements where each element is at most $k$ positions away from its target sorted position, sort the array in $O(n \log(k+2))$ time and $O(k)$ auxiliary space.
 - LeetCode Variant: [Nearly Sorted Array (GFG)](https://www.geeksforgeeks.org/problems/nearly-sorted-1587115620/1)
 
 ### Level 3 (Hard): Inversion Counting with Coordinate Compression
@@ -160,9 +211,15 @@ Given an array `arr` with $10^5$ arbitrary 32-bit integers (including negative n
 ### Hints for Level 2 (Sort $k$-Sorted Array)
 - **Hint 1:** Because every element is at most $k$ steps away from its sorted index, the element that belongs at index $0$ must currently reside somewhere in indices $0$ through $k$.
 - **Hint 2:** Can you use a data structure of fixed size $k + 1$ that efficiently extracts the minimum element in $O(\log k)$?
-- **Hint 3:** Use a `std::priority_queue<int, std::vector<int>, std::greater<int>>` (Min-Heap). Push the first $k + 1$ elements. Then, for every index from $0$ to $n-1$, pop the root into the array and push the next available element.
+- **Hint 3:** Use a `priority_queue<int, vector<int>, greater<int>>` (Min-Heap). Push the first $k + 1$ elements. Then, for every index from $0$ to $n-1$, pop the root into the array and push the next available element.
 
 ### Hints for Level 3 (Inversion Counting)
+
+- **Hint A:** Replace each distinct value with its sorted rank. Equal values must get equal ranks.
+- **Hint B:** Scan from right to left; already-seen values are to the right of the current item.
+- **Hint C:** A Fenwick tree stores frequency totals. Query ranks strictly smaller than the current rank, then add the current rank.
+
+**Alternative merge approach (no compression required):**
 - **Hint 1:** Think divide and conquer. If you divide the array into left and right halves, inversions can be of three types: completely inside the left half, completely inside the right half, or spanning across the halves.
 - **Hint 2:** If both halves are already sorted, how can two pointers identify how many elements in the left half are greater than an element in the right half in $O(1)$ time?
 - **Hint 3:** In the merge step: if `arr[i] > arr[j]`, then because the left subarray is sorted, every element from index `i` to `mid` is also strictly greater than `arr[j]`. You can add `(mid - i + 1)` directly to your count!
@@ -208,12 +265,15 @@ Given: `A = [10, 80, 30, 90, 40, 50, 70]`
    - Final swap: swap `arr[i+1]` (`80`) with pivot `arr[6]` (`70`).
    - Final Array: `[10, 30, 40, 50, 70, 90, 80]`. Returns index $4$.
 
-2. **Hoare Partition (pivot = arr[3] = 90):**
-   - $i = -1, j = 7$.
-   - Advance $i$: stops at `arr[1] = 80` (since $10 < 90, 80 < 90$... wait: `arr[i] < pivot`: $10 < 90, 80 < 90, 30 < 90$, stops at $i=3$ where $90 \ge 90$).
-   - Decrement $j$: stops at $j=6$ where `arr[6] = 70 \le 90$.
-   - Swap `arr[3]` (`90`) and `arr[6]` (`70`).
-   - Pointers meet and return split index.
+2. **Hoare Partition (pivot value = 90):**
+   - Start `i=-1`, `j=7`.
+   - Left scan visits 10, 80, 30, then stops at `i=3` because `90 < 90` is false.
+   - Right scan stops at `j=6`, value 70, because `70 > 90` is false.
+   - Swap indices 3 and 6: `[10,80,30,70,40,50,90]`.
+   - Next left scan passes indices 4 and 5, then stops at `i=6`, value 90.
+   - Next right scan stops at `j=5`, value 50.
+   - `i >= j`, so return **split 5**. Recurse on `[0..5]` and `[6..6]`.
+   - The left group is not sorted yet. The returned split is not the final index of pivot 90, which is currently at 6.
 </details>
 
 <details>
@@ -240,15 +300,15 @@ Given: $A = [4, -2, 0, 4, -2, 1]$
 <details>
 <summary><b>Click to expand Solution for Bug 2.1 (Comparator Fix)</b></summary>
 
-1. **Axiom Violated:** **Irreflexivity**. The rule states `comp(x, x)` must evaluate to `false`. Using `>=` or `<=` causes `comp(x, x)` to evaluate to `true`.
-2. **Failure:** Violates Strict Weak Ordering, which triggers **Undefined Behavior (UB)** under the ISO C++ standard. In common standard library implementations (like libstdc++), partitioning loops omit boundary checks to maximize speed, relying on `comp(pivot, pivot) == false` as an in-buffer sentinel. When it returns `true`, the pointer can advance past allocated memory bounds. While a segmentation fault is a common symptom on many platforms, **a crash is possible, not guaranteed**; other manifestations include silent memory corruption, invalid sorting order, or infinite loops.
+1. **Actual invalid branch:** `return a.id <= b.id` returns true when both ID and score tie, including self-comparison. This violates irreflexivity.
+2. **Check the guard:** `a.score >= b.score` is only evaluated when scores differ, so it has the same result as `a.score > b.score` there. That branch is valid as written. Use `>` for clearer intent, but the presence of `>=` alone is not proof of a bug. The complete ordering rule matters. Passing the invalid comparator to `sort` gives undefined behaviour; a crash is not guaranteed.
 3. **Corrected Comparator:**
 ```cpp
-bool compareStudents(const Student& a, const Student& b) {
-    if (a.score != b.score) {
+bool compareStudents(const Student& a, const Student& b){
+    if(a.score != b.score){
         return a.score > b.score; // Strict '>'
     }
-    return a.id < b.id;           // Strict '<'
+    return a.id < b.id; // Strict '<'
 }
 ```
 </details>
@@ -256,15 +316,15 @@ bool compareStudents(const Student& a, const Student& b) {
 <details>
 <summary><b>Click to expand Solution for Bug 2.2 (Heapify Fix)</b></summary>
 
-1. **Index error:** In 0-indexed C++ arrays, the left child is `2 * i + 1` and the right child is `2 * i + 2`. Using `2 * i` is 1-indexed formula and creates an infinite loop when $i = 0$ ($2 \times 0 = 0$).
-2. **Missing recursion:** When an element is swapped down, it can violate the heap property in the newly formed subtree. It must recursively call `brokenHeapify(arr, n, largest);`.
+1. **Index error:** In 0-indexed C++ arrays, the left child is `2 * i + 1` and the right child is `2 * i + 2`. Using `2 * i` is a 1-indexed formula. At `i=0`, it treats the root as its own child and misses the real right child at index 2. Self-comparison with `>` is false, so this code does not automatically create an infinite loop. For `[1,2,9]`, it picks 2 instead of 9.
+2. **Missing recursion:** When an element is swapped down, it can violate the heap property in the newly formed subtree. Continue sift-down from `largest`, either in a loop or with a call to the corrected heapify function. Merely calling the still-broken function does not repair its indexing.
 </details>
 
 <details>
 <summary><b>Click to expand Solution for Bug 2.3 (Counting Sort Bug)</b></summary>
 
 1. **Data Corruption:** Overwriting `emp[idx].deptId = d` only updates the department ID, leaving the employee's `name` field untouched from whatever record was originally at `idx`. Employee records are completely decoupled and scrambled!
-2. **Property Violated:** **Stability and Data Integrity**. In-place frequency overwrite can only sort primitive scalars; composite records require the stable output-array prefix-sum implementation.
+2. **Property Violated:** **Data integrity / item preservation** fails first: the output no longer contains the original employee records. Stability is a separate question once whole records are preserved. Stable prefix-sum placement is one suitable repair; other record-moving sorts can also work.
 </details>
 
 <details>
@@ -278,17 +338,17 @@ bool compareStudents(const Student& a, const Student& b) {
 <summary><b>Click to expand Solution for Implementation Level 1 (Char Sort)</b></summary>
 
 ```cpp
-#include <string>
-#include <vector>
+#include <string> // for text
+using namespace std;
 
-void sortStringAlphabetically(std::string& s) {
+void sortStringAlphabetically(string& s){
     int count[26] = {0};
-    for (char c : s) {
+    for(char c : s){
         count[c - 'a']++;
     }
     int idx = 0;
-    for (int i = 0; i < 26; ++i) {
-        while (count[i] > 0) {
+    for(int i = 0; i < 26; ++i){
+        while(count[i] > 0){
             s[idx++] = static_cast<char>('a' + i);
             count[i]--;
         }
@@ -303,42 +363,130 @@ void sortStringAlphabetically(std::string& s) {
 <summary><b>Click to expand Solution for Implementation Level 2 (k-Sorted Array)</b></summary>
 
 ```cpp
-#include <vector>
-#include <queue>
+#include <vector>     // for dynamic arrays
+#include <algorithm>  // for sorting and array helpers
+#include <functional> // for comparison and callable types
+#include <queue>      // for the heap / priority queue
+#include <stdexcept>  // for reporting invalid input
+using namespace std;
 
-void sortKSortedArray(std::vector<int>& arr, int k) {
-    int n = arr.size();
-    if (n <= 1 || k == 0) return;
+void sortKSortedArray(vector<int>& arr, int k){
+    if(k < 0){
+        throw invalid_argument("k must be non-negative");
+    }
+    int n = static_cast<int>(arr.size());
+    if(n <= 1 || k == 0){
+        return; // k=0 promises the input is already sorted
+    }
 
     // Min-heap to maintain window of size k + 1
-    std::priority_queue<int, std::vector<int>, std::greater<int>> minHeap;
+    priority_queue<int, vector<int>, greater<int>> minHeap;
 
     // Push first min(n, k + 1) elements
-    int windowSize = std::min(n, k + 1);
-    for (int i = 0; i < windowSize; ++i) {
+    int windowSize = min(k, n - 1) + 1; // Avoid k+1 overflow
+    for(int i = 0; i < windowSize; ++i){
         minHeap.push(arr[i]);
     }
 
     int targetIdx = 0;
-    for (int i = k + 1; i < n; ++i) {
+    for(int i = windowSize; i < n; ++i){
         arr[targetIdx++] = minHeap.top();
         minHeap.pop();
         minHeap.push(arr[i]);
     }
 
     // Drain remaining elements
-    while (!minHeap.empty()) {
+    while(!minHeap.empty()){
         arr[targetIdx++] = minHeap.top();
         minHeap.pop();
     }
 }
 ```
-- **Time Complexity:** $O(n \log k)$.
-- **Space Complexity:** $O(k)$ auxiliary heap memory.
+- **Time Complexity:** $O(n \log(k+2))$.
+- **Space Complexity:** $O(\min(n,k+1))$ heap memory. For `k=0`, the displacement promise means the input is already sorted.
 </details>
 
 <details>
 <summary><b>Click to expand Solution for Implementation Level 3 (Inversion Counting)</b></summary>
 
-See verified C++ implementation in [`interview-prep.md`](./interview-prep.md#problem-3-count-inversions-in-an-array).
+The merge-based solution is in [interview preparation](./interview-prep.md#problem-3-count-inversions-in-an-array). It does not need coordinate compression. Here is the requested **coordinate-compression** alternative.
+
+<a id="fenwick-solution"></a>
+**Compression:** Sort a copy and remove repeated values. For `[-5, 10, -5, 3]`, unique values `[-5,3,10]` become ranks `1,2,3`. This changes the size of the index domain without changing relative order.
+
+**Fenwick tree:** An array of partial frequency totals that can update a rank or sum a prefix in $O(\log n)$ time. `index & -index` gives its lowest set bit; updates move to larger covering ranges, queries move to smaller ranges.
+
+Scan right to left. Query rank minus one to count strictly smaller values already seen; then insert the current rank. Equal values share a rank and are not counted as inversions.
+
+```cpp
+#include <vector>    // for dynamic arrays
+#include <algorithm> // for sorting and array helpers
+using namespace std;
+
+long long countInversionsFenwick(const vector<int>& arr){
+    vector<int> keys = arr;
+    sort(keys.begin(), keys.end());
+    keys.erase(unique(keys.begin(), keys.end()), keys.end());
+    int ranks = static_cast<int>(keys.size());
+    vector<int> tree(keys.size() + 1, 0);
+    long long answer = 0;
+    for(int i = static_cast<int>(arr.size()) - 1; i >= 0; --i){
+        int rank =
+            static_cast<int>(lower_bound(keys.begin(), keys.end(), arr[i]) - keys.begin()) + 1;
+        for(int q = rank - 1; q > 0; q -= q & -q){
+            answer += tree[q];
+        }
+        for(int u = rank; u <= ranks;){
+            ++tree[u];
+            int jump = u & -u;
+            if(jump > ranks - u){
+                break; // Avoid overflow beyond the final rank
+            }
+            u += jump;
+        }
+    }
+    return answer;
+}
+```
+
+For `[-5,10,-5,3]`, scan ranks `2,1,3,1`. Queries return `0,0,2,0`; answer is 2, from `(10,-5)` and `(10,3)`. Time $O(n\log n)$ including compression; extra space $O(n)$. This version leaves the original array unchanged. Array sizes must fit the signed-index convention in theory. Empty and all-equal inputs return zero.
 </details>
+
+
+<details>
+<summary>Answers for Challenges 1.4–1.7 and the descending drill</summary>
+
+**1.4:** Selection states: `[1,3,2,4]`, `[1,2,3,4]`, `[1,2,3,4]`. Each selected prefix is final. Insertion states: `[3,4,2,1]`, `[2,3,4,1]`, `[1,2,3,4]`. Its sorted prefix can move later. Inserting saved key 1 into `[2,3,4,1]` gives temporary `[2,3,4,4]`, `[2,3,3,4]`, `[2,2,3,4]`, then `[1,2,3,4]`.
+
+**1.5:** Accept 1: `low=0, mid=1, high=2`. Swap 2 and 0: `[1,0,2]`, `high=1`, with `mid=1` unchanged. Process incoming 0: `[0,1,2]`, `low=1, mid=2`; stop. With tagged `[2a,2b,0]`, the end swaps can yield `[0,2b,2a]`, proving instability.
+
+**1.6 merge:** Start `i=2,j=2,write=5`: write 5. Then `(2,1,4)`: write 4. Then `(1,1,3)`: write 0 from nums2 on a tie. Then `(1,0,2)`: write 0 from nums1. Then `(0,0,1)`: write -2. `j=-1`; stop. Final `[-3,-2,0,0,4,5]`. The first zero is valid because its index is below `m`.
+
+**1.6 permutations:** `[1,5,5]`: pivot 0, successor 2; swap and reverse gives `[5,1,5]`. `[2,3,1]`: pivot 0, successor 1; swap to `[3,2,1]`, reverse suffix to `[3,1,2]`. `[3,2,1]`: no pivot; wrap to `[1,2,3]`. Next Permutation chooses the next arrangement, while full sorting always chooses the smallest one.
+
+**1.7 choices:** Maximum: linear scan, $O(n)$ time / $O(1)$ space. Stable marks: stable Merge Sort or `stable_sort`, with the relevant buffer/stack costs. Range -10..10: Counting Sort, $O(n+21)$ time / $O(21)$ space for plain-value reconstruction. Fifth largest: QuickSelect, expected $O(n)$ / $O(1)$ for the iterative version. Bigger than RAM: sorted runs plus buffered external merging; costs depend on number of runs and I/O rounds.
+
+**Descending drill:** Swap on `<` in Bubble; choose the maximum in Selection; shift values `< key` in Insertion; visit count buckets from high to low. Integer result `[8,7,6,5,4,3,3,2,1,1]`; character result `"fedcba"`. [Order decisions and full character implementation](./theory.md#descending-order); [descending Counting function](./theory.md#4-counting-sort) uses `countingSortValues(values, true)`.
+
+</details>
+
+## 6. Implementation checks before you finish
+
+Use fresh inputs so a previous sort does not make later tests accidentally easy. Compare against a sorted copy and check duplicate counts. Test empty, one item, sorted, reverse, equal, negative, and extreme values where the algorithm permits them. Check invalid domain values for Radix and Bucket, and large ranges for Counting.
+
+The [notes verification script](./verify_notes.py) compiles the actual complete code blocks and checks their results. It intentionally does not run the broken debugging examples. A passing test suite helps detect mistakes; it does not replace understanding the invariants.
+
+## 7. Related problems after the core exercises
+
+These are follow-up applications from the source notes. They are optional, and their full solutions belong to the relevant later topic.
+
+| Official problem | Connection to this module |
+|---|---|
+| [Insertion Sort List](https://leetcode.com/problems/insertion-sort-list/) | Insert into a sorted prefix by changing links |
+| [Sort List](https://leetcode.com/problems/sort-list/) | Merge Sort on a linked list; distinguish recursive and bottom-up memory |
+| [Merge k Sorted Lists](https://leetcode.com/problems/merge-k-sorted-lists/) | Extend two-way merge with divide-and-conquer or a heap |
+| [Squares of a Sorted Array](https://leetcode.com/problems/squares-of-a-sorted-array/) | Choose between two ends and fill output from the back |
+| [Next Greater Element III](https://leetcode.com/problems/next-greater-element-iii/) | Next Permutation on digits, followed by integer-range checks |
+| [Move Zeroes](https://leetcode.com/problems/move-zeroes/) | Stable compaction of nonzero values; do not assume arbitrary DNF swaps preserve their order |
+| [Wiggle Sort II](https://leetcode.com/problems/wiggle-sort-ii/) | Selection and three-way partitioning with a different target arrangement |
+| [Reverse Pairs](https://leetcode.com/problems/reverse-pairs/) | Count `i < j` with `a[i] > 2*a[j]`; use wide arithmetic and a separate counting step before merging |

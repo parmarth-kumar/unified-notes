@@ -387,6 +387,9 @@ For C++:
 - Include necessary headers.
 - Handle boundary cases.
 - Prefer meaningful variable names.
+- Match the learner's `C++ & DSA` teaching-code style: use `using namespace std;`, four-space indentation, and consistent attached braces/spacing.
+- Include only the headers a code example actually needs. Add a short comment explaining each header's purpose; do not include `iostream` in a function that performs no input or output.
+- Use unqualified standard-library names in teaching code so the learner does not have to read repeated `std::` prefixes.
 - Explain undefined behavior and memory-management risks where relevant.
 - Test code with representative inputs when execution tools are available.
 

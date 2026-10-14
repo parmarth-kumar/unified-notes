@@ -18,7 +18,10 @@ unified-notes/
         ├── revision.md     # High-density recall sheet & complexity matrix
         ├── doubts.md       # Living doubt log & conceptual misconceptions
         ├── sorting-visualizer.html # Interactive visualizer & telemetry HUD
-        └── verify_all_sorts.cpp    # Automated test suite across 18 benchmark suites
+        ├── audit-report.md        # Source coverage, corrections, and actual validation
+        ├── verify_notes.py        # Compile/test code extracted from the current notes
+        ├── verify_all_sorts.cpp    # Standalone C++ correctness checks
+        └── verify_visualizer.cjs  # All visualizer algorithms and variants
 ```
 
 ---
@@ -26,7 +29,7 @@ unified-notes/
 ## Topics
 
 ### Data Structures & Algorithms (DSA)
-- [**Sorting Algorithms**](./DSA/Sorting/README.md) — Comprehensive guide covering Bubble, Selection, Insertion, Counting, Merge, Quick, Heap, Radix, Bucket, and Shell Sort, alongside the interactive [Sorting Visualizer](./DSA/Sorting/sorting-visualizer.html).
+- [**Sorting Algorithms**](./DSA/Sorting/README.md) — Simple-English lessons covering ten sorts, C++ tools, DNF, Merge Sorted Arrays, Next Permutation, and interview practice. Includes an interactive [Sorting Visualizer](./DSA/Sorting/sorting-visualizer.html) and a [source review](./DSA/Sorting/audit-report.md).
 
 ---
 
