@@ -23,6 +23,10 @@ The extra sorts are included for completeness. They do not all need equal study 
 
 | File | Use it for |
 |---|---|
+| [ALL_IN_ONE_SORTING.md](./ALL_IN_ONE_SORTING.md) | Complete All-In-One Sorting Guide in Hinglish (Roman English script): theory, dry runs, C++ code, doubts, STL, systems, problems, and revision |
+| [INSERTION_SORT_DEEP_DIVE.md](./INSERTION_SORT_DEEP_DIVE.md) | Dedicated deep dive for Insertion Sort: playing card model, shifting vs swapping, detailed dry run, LeetCode 147 linked list, binary insertion, and top doubts |
+| [COUNTING_SORT_DEEP_DIVE.md](./COUNTING_SORT_DEEP_DIVE.md) | Dedicated deep dive for Counting Sort: election box model, stable prefix sums, negative offset trick, satellite data structs, and top doubts |
+| [MERGE_SORT_DEEP_DIVE.md](./MERGE_SORT_DEEP_DIVE.md) | Dedicated deep dive for Merge Sort: divide-and-conquer, 2-pointer merge trace, upfront buffer reuse, LeetCode 148 linked list, inversion counting, and top doubts |
 | [theory.md](./theory.md) | Full lessons, glossary, dry runs, C++ implementations, correctness and complexity |
 | [sorting-visualizer.html](./sorting-visualizer.html) | All ten sorts plus DNF, three Quick variants, both Counting modes, and live working-state panels |
 | [practice.md](./practice.md) | Trace, debug, and code; hints and separate answers |
@@ -32,6 +36,7 @@ The extra sorts are included for completeness. They do not all need equal study 
 | [audit-report.md](./audit-report.md) | Source inventory, corrections, actual validation, and limits of this review |
 | [verify_notes.py](./verify_notes.py) | Compile and test the implementations extracted from the current Markdown |
 | [verify_all_sorts.cpp](./verify_all_sorts.cpp) | Existing standalone C++ verification suite |
+| [sorting_test_harness.cpp](../../sorting_test_harness.cpp) | Master interactive C++ test harness with edge cases and automated benchmarks |
 | [verify_visualizer.cjs](./verify_visualizer.cjs) | Check every visualizer algorithm, variant, snapshot, counter, and input rule |
 
 The visualizer supports Bubble, Selection, Insertion, Counting, Merge, Quick, Heap, Radix, Bucket, Shell, and Sort Colors / DNF. It shows merge/output buffers, a heap tree, radix digit counts, buckets, gap groups, and partition regions. Quick Sort has Lomuto, Hoare, and three-way choices. Counting has frequency/item-list reconstruction and stable prefix sums.

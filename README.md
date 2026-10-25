@@ -9,9 +9,19 @@
 ```
 unified-notes/
 ├── instruction.md          # Master learning system guidelines & architecture rules
+├── code-kunal.cpp          # Personal C++ practice playground
+├── sorting_test_harness.cpp # Master interactive C++ test harness with edge cases & benchmark
 └── DSA/
+    ├── Session 1 to 10/    # C++ DSA Foundation playlist notes (Sessions 01–10)
+    │   ├── 01-Flowcharts-Pseudocode-and-Cpp-Setup.md
+    │   ├── ...
+    │   └── 10-Subarrays-and-Kadanes-Algorithm.md
     └── Sorting/            # Complete Sorting Algorithms Learning Package
         ├── README.md       # Topic syllabus, navigation & attribution
+        ├── ALL_IN_ONE_SORTING.md # Complete All-In-One Sorting guide (Hinglish)
+        ├── INSERTION_SORT_DEEP_DIVE.md
+        ├── COUNTING_SORT_DEEP_DIVE.md
+        ├── MERGE_SORT_DEEP_DIVE.md
         ├── theory.md       # First-principles conceptual theory & C++ implementations
         ├── practice.md     # Tracing challenges, edge-case debugging & drills
         ├── interview-prep.md # Google SDE interview Q&A bank & coding problems
@@ -29,6 +39,7 @@ unified-notes/
 ## Topics
 
 ### Data Structures & Algorithms (DSA)
+- [**DSA Sessions 01–10**](./DSA/Session%201%20to%2010/01-Flowcharts-Pseudocode-and-Cpp-Setup.md) — Ten self-contained C++ foundation lessons in playlist order, from flowcharts to Kadane's algorithm, with worked dry runs, interview extensions, and question-first revision with answer keys.
 - [**Sorting Algorithms**](./DSA/Sorting/README.md) — Simple-English lessons covering ten sorts, C++ tools, DNF, Merge Sorted Arrays, Next Permutation, and interview practice. Includes an interactive [Sorting Visualizer](./DSA/Sorting/sorting-visualizer.html) and a [source review](./DSA/Sorting/audit-report.md).
 
 ---

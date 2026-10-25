@@ -299,8 +299,9 @@ def check_links():
         for link in links:
             if re.match(r"^[a-zA-Z][\w+.-]*:", link) or link.startswith("//"):
                 continue
+            from urllib.parse import unquote
             target, _, anchor = link.partition("#")
-            destination = (path.parent / target).resolve() if target else path
+            destination = (path.parent / unquote(target)).resolve() if target else path
             count += 1
             if not destination.is_file():
                 errors.append(f"{path.name}: missing {link}")
